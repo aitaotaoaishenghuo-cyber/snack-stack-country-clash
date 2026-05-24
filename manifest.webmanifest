@@ -1,0 +1,18 @@
+{
+  "name": "Snack Stack: Country Clash",
+  "short_name": "Snack Stack",
+  "description": "Clear the pile, score for your country, and challenge friends to beat today's stack.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff1d6",
+  "theme_color": "#34495e",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
