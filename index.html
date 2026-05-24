@@ -10,7 +10,7 @@
       property="og:description"
       content="Clear the pile. Score for your country. Can you beat Today's snack stack?"
     />
-    <meta property="og:image" content="https://snack-stack-country-clash.vercel.app/assets/og-preview.svg" />
+    <meta property="og:image" content="https://snack-stack-country-clash.vercel.app/assets/og-preview.png" />
     <meta property="og:url" content="https://snack-stack-country-clash.vercel.app/" />
     <meta property="twitter:card" content="summary_large_image" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -147,6 +147,10 @@
       </div>
     </div>
     <div class="drawer-backdrop hidden" id="drawerBackdrop"></div>
+
+    <audio id="sndTap" src="assets/tap.wav" preload="auto"></audio>
+    <audio id="sndMatch" src="assets/match.wav" preload="auto"></audio>
+    <audio id="sndFail" src="assets/fail.wav" preload="auto"></audio>
     <script src="game.js?v=7"></script>
   </body>
 </html>
