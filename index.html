@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snack Stack: Country Clash</title>
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Snack Stack: Country Clash 🍔🇺🇸" />
+    <meta
+      property="og:description"
+      content="Clear the pile. Score for your country. Can you beat Today's snack stack?"
+    />
+    <meta property="og:image" content="https://snack-stack-country-clash.vercel.app/assets/og-preview.svg" />
+    <meta property="og:url" content="https://snack-stack-country-clash.vercel.app/" />
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Snack Stack" />
+    <meta name="theme-color" content="#34495e" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="assets/icon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css?v=7" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="screen game-screen" aria-label="Snack Stack game">
+        <header class="top-bar">
+          <div class="brand-lockup">
+            <p class="eyebrow">Daily Snack Clash</p>
+            <h1>Snack Stack</h1>
+            <p class="tagline">Clear the pile. Lift your country.</p>
+          </div>
+          <div class="header-actions">
+            <button class="icon-button" id="panelButton" type="button" aria-label="Open leaderboard" title="Leaderboard">
+              🏆
+            </button>
+            <button class="icon-button" id="resetButton" type="button" aria-label="Restart game" title="Restart">
+              ↻
+            </button>
+          </div>
+        </header>
+
+        <section class="country-panel" aria-label="Choose your country">
+          <label for="countrySelect">Play for</label>
+          <select id="countrySelect">
+            <option value="USA">🇺🇸 USA</option>
+            <option value="UK">🇬🇧 UK</option>
+            <option value="Canada">🇨🇦 Canada</option>
+            <option value="Brazil">🇧🇷 Brazil</option>
+            <option value="Japan">🇯🇵 Japan</option>
+            <option value="Germany">🇩🇪 Germany</option>
+            <option value="Australia">🇦🇺 Australia</option>
+          </select>
+        </section>
+
+        <section class="preference-panel" aria-label="Choose your snack vibe">
+          <span>Vibe</span>
+          <div class="theme-switcher" id="themeSwitcher">
+            <button class="theme-chip active" type="button" data-theme="sweet">Sweet</button>
+            <button class="theme-chip" type="button" data-theme="fast">Fast Food</button>
+            <button class="theme-chip" type="button" data-theme="coffee">Coffee Run</button>
+          </div>
+        </section>
+
+        <section class="status-row" aria-label="Game status">
+          <div>
+            <span id="tilesLeft">0</span>
+            <small>left</small>
+          </div>
+          <div>
+            <span id="comboCount">0</span>
+            <small>matches</small>
+          </div>
+          <div>
+            <span id="timer">00:00</span>
+            <small>time</small>
+          </div>
+        </section>
+
+        <section class="board-wrap">
+          <div class="board-banner">
+            <span>Today</span>
+            <strong id="boardMood">Sweet stack. Clean matches.</strong>
+          </div>
+          <div class="board" id="board" aria-label="Game board"></div>
+          <div class="match-toast hidden" id="matchToast">Match +1</div>
+        </section>
+
+        <p class="tray-label" id="trayLabel">Match 3 snacks before the tray fills</p>
+        <section class="tray" id="tray" aria-label="Match tray"></section>
+
+        <section class="actions">
+          <button id="hintButton" type="button">Hint</button>
+          <button id="shareButton" type="button">Share Score</button>
+        </section>
+
+        <section class="metrics-strip" aria-label="Local test metrics">
+          <div><strong id="metricRuns">0</strong><span>runs</span></div>
+          <div><strong id="metricWins">0</strong><span>wins</span></div>
+          <div><strong id="metricRevives">0</strong><span>revives</span></div>
+          <div><strong id="metricShares">0</strong><span>shares</span></div>
+        </section>
+      </section>
+
+      <aside class="screen side-screen" id="sidePanel" aria-label="Leaderboard and rules">
+        <button class="drawer-close" id="panelCloseButton" type="button" aria-label="Close leaderboard">×</button>
+        <section>
+          <p class="eyebrow">Country Clash</p>
+          <h2>Today's Board</h2>
+          <p class="compact-copy">
+            Clear the snack pile, score for your country, then challenge friends with your result.
+          </p>
+        </section>
+
+        <section>
+          <h3>Leaderboard</h3>
+          <ol class="leaderboard" id="leaderboard"></ol>
+        </section>
+
+        <section>
+          <h3>How It Plays</h3>
+          <ul class="rules">
+            <li>Only uncovered snacks can be tapped.</li>
+            <li>Three matching snacks disappear from the tray.</li>
+            <li>The tray holds seven snacks. Fill it and the run ends.</li>
+          </ul>
+        </section>
+      </aside>
+    </main>
+
+    <div class="modal hidden" id="resultModal" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+      <div class="modal-card">
+        <p class="eyebrow" id="resultKicker">Run Complete</p>
+        <h2 id="resultTitle">Nice run</h2>
+        <p id="resultCopy"></p>
+        <div class="result-stats" id="resultStats"></div>
+        <pre id="shareText"></pre>
+        <div class="modal-actions">
+          <button id="reviveButton" class="btn-premium" type="button">🎬 Free Revive</button>
+          <button id="copyButton" type="button">Copy</button>
+          <button id="playAgainButton" type="button">Play Again</button>
+        </div>
+      </div>
+    </div>
+    <div class="drawer-backdrop hidden" id="drawerBackdrop"></div>
+    <script src="game.js?v=7"></script>
+  </body>
+</html>
