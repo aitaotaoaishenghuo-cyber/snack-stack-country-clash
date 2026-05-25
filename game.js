@@ -11,6 +11,7 @@ const panelButton = document.querySelector("#panelButton");
 const panelCloseButton = document.querySelector("#panelCloseButton");
 const drawerBackdrop = document.querySelector("#drawerBackdrop");
 const boardMood = document.querySelector("#boardMood");
+const streakBadge = document.querySelector("#streakBadge");
 const trayLabel = document.querySelector("#trayLabel");
 const matchToast = document.querySelector("#matchToast");
 const resultModal = document.querySelector("#resultModal");
@@ -97,6 +98,8 @@ let toastId = null;
 let gamePaused = false;
 let revivedThisRun = false;
 let runCounted = false;
+let streak = 0;
+let bestMoveId = null;
 const analyticsKey = "snack-stack-local-analytics-v1";
 let analytics = loadAnalytics();
 
@@ -214,14 +217,17 @@ function initGame() {
   }));
   tray = [];
   matches = 0;
+  streak = 0;
   gamePaused = false;
   revivedThisRun = false;
   runCounted = false;
   startedAt = Date.now();
   resultModal.classList.add("hidden");
   reviveButton.hidden = true;
+  reviveButton.disabled = false;
+  reviveButton.textContent = "🎬 Free Revive · Clear 3 Slots";
   boardMood.textContent = themePacks[activeTheme].mood;
-  trayLabel.textContent = themePacks[activeTheme].tray;
+  updateTrayMessage();
   startTimer();
   track("runs");
   runCounted = true;
@@ -230,11 +236,13 @@ function initGame() {
 }
 
 function renderAll() {
+  bestMoveId = getBestMoveId();
   renderBoard();
   renderTray();
   renderStats();
   renderLeaderboard();
   renderMetrics();
+  updateTrayMessage();
 }
 
 function loadAnalytics() {
@@ -297,7 +305,7 @@ function renderBoard() {
     .forEach((tile) => {
       const tileButton = document.createElement("button");
       const blocked = isBlocked(tile);
-      tileButton.className = `tile${blocked ? " blocked" : ""}`;
+      tileButton.className = `tile${blocked ? " blocked" : ""}${tile.id === bestMoveId ? " hot" : ""}`;
       tileButton.type = "button";
       tileButton.textContent = tile.snack.icon;
       tileButton.style.left = `${tile.x * scale}px`;
@@ -305,6 +313,7 @@ function renderBoard() {
       tileButton.style.zIndex = String(tile.layer + 1);
       tileButton.style.setProperty("--tile-color", tile.snack.color);
       tileButton.disabled = blocked;
+      tileButton.dataset.tileId = tile.id;
       tileButton.setAttribute("aria-label", `${tile.snack.key} tile`);
       tileButton.addEventListener("click", () => pickTile(tile.id));
       boardEl.appendChild(tileButton);
@@ -313,6 +322,8 @@ function renderBoard() {
 
 function renderTray() {
   trayEl.innerHTML = "";
+  trayEl.classList.toggle("warm", tray.length >= 5 && tray.length < maxTray);
+  trayEl.classList.toggle("danger", tray.length >= 6);
   for (let index = 0; index < maxTray; index += 1) {
     const slot = document.createElement("div");
     slot.className = "tray-slot";
@@ -331,6 +342,8 @@ function renderTray() {
 function renderStats() {
   tilesLeftEl.textContent = String(tiles.filter((tile) => tile.alive).length);
   comboCountEl.textContent = String(matches);
+  streakBadge.textContent = `${streak} streak`;
+  streakBadge.classList.toggle("hot", streak >= 2);
 }
 
 function renderLeaderboard() {
@@ -365,7 +378,12 @@ function pickTile(tileId) {
   tile.alive = false;
   animatePicked(tileId);
   tray.push(tile);
-  resolveMatches();
+  const resolved = resolveMatches();
+  if (resolved.count > 0) {
+    streak += resolved.count;
+  } else {
+    streak = 0;
+  }
 
   if (tiles.every((candidate) => !candidate.alive)) {
     finishGame(true);
@@ -378,9 +396,11 @@ function pickTile(tileId) {
   }
 
   renderAll();
+  updateTrayMessage();
 }
 
 function resolveMatches() {
+  let resolved = { count: 0, icon: "" };
   const grouped = tray.reduce((memo, tile) => {
     memo[tile.snack.key] = memo[tile.snack.key] || [];
     memo[tile.snack.key].push(tile);
@@ -392,15 +412,61 @@ function resolveMatches() {
       const removeIds = new Set(group.slice(0, 3).map((tile) => tile.id));
       tray = tray.filter((tile) => !removeIds.has(tile.id));
       matches += 1;
+      resolved = { count: resolved.count + 1, icon: group[0].snack.icon };
       showMatchToast(group[0].snack.icon);
     }
   });
+  return resolved;
+}
+
+function getBestMoveId() {
+  const openTiles = tiles.filter((tile) => tile.alive && !isBlocked(tile));
+  if (!openTiles.length) {
+    return null;
+  }
+  const trayCounts = tray.reduce((memo, tile) => {
+    memo[tile.snack.key] = (memo[tile.snack.key] || 0) + 1;
+    return memo;
+  }, {});
+  const completingTile = openTiles.find((tile) => trayCounts[tile.snack.key] === 2);
+  if (completingTile) {
+    return completingTile.id;
+  }
+  const helperTile = openTiles.find((tile) => trayCounts[tile.snack.key] === 1);
+  if (helperTile) {
+    return helperTile.id;
+  }
+  const openGroups = openTiles.reduce((memo, tile) => {
+    memo[tile.snack.key] = memo[tile.snack.key] || [];
+    memo[tile.snack.key].push(tile);
+    return memo;
+  }, {});
+  const pair = Object.values(openGroups).find((group) => group.length >= 2);
+  return (pair?.[0] || openTiles[0]).id;
+}
+
+function updateTrayMessage() {
+  const counts = tray.reduce((memo, tile) => {
+    memo[tile.snack.key] = memo[tile.snack.key] || { count: 0, icon: tile.snack.icon };
+    memo[tile.snack.key].count += 1;
+    return memo;
+  }, {});
+  const nearMatch = Object.values(counts).find((item) => item.count === 2);
+  const openNearMatch = Object.values(counts).find((item) => item.count === 1);
+
+  if (tray.length >= 6) {
+    trayLabel.textContent = "One slot left. Make the save.";
+  } else if (nearMatch) {
+    trayLabel.textContent = `${nearMatch.icon} is one away from a clear`;
+  } else if (openNearMatch && tray.length >= 3) {
+    trayLabel.textContent = `${maxTray - tray.length} slots left. Keep it clean.`;
+  } else {
+    trayLabel.textContent = themePacks[activeTheme].tray;
+  }
 }
 
 function animatePicked(tileId) {
-  const liveTiles = tiles.filter((tile) => tile.alive).sort((a, b) => a.layer - b.layer);
-  const targetIndex = liveTiles.findIndex((tile) => tile.id === tileId);
-  const button = [...boardEl.querySelectorAll(".tile")][targetIndex];
+  const button = boardEl.querySelector(`[data-tile-id="${tileId}"]`);
   if (button) {
     button.classList.add("picked");
   }
@@ -479,7 +545,9 @@ function finishGame(won) {
   resultTitle.textContent = won ? "You cleared today's stack" : "So close. Run it back?";
   resultCopy.textContent = won
     ? `${country} gets a score bump. Share the grid and make someone prove they can do better.`
-    : `You made ${matches} matches before the tray filled. The daily board is still waiting.`;
+    : revivedThisRun
+      ? `You made ${matches} matches before the tray filled. The daily board is still waiting.`
+      : `You made ${matches} matches before the tray filled. Clear 3 slots for free and keep the run alive.`;
   resultStats.innerHTML = `
     <div><strong>${elapsed}</strong><span>time</span></div>
     <div><strong>${matches}</strong><span>matches</span></div>
@@ -510,14 +578,26 @@ function reviveRun() {
   if (revivedThisRun || tray.length === 0) {
     return;
   }
+  reviveButton.disabled = true;
+  reviveButton.textContent = "Loading reward...";
+  setTimeout(() => {
+    completeRevive();
+  }, 900);
+}
+
+function completeRevive() {
   revivedThisRun = true;
   track("revives");
   tray = tray.slice(0, Math.max(0, tray.length - 3));
+  streak = 0;
   gamePaused = false;
   resultModal.classList.add("hidden");
+  reviveButton.disabled = false;
+  reviveButton.textContent = "🎬 Free Revive · Clear 3 Slots";
   showMatchToast("🎬");
   startTimer();
   renderAll();
+  updateTrayMessage();
 }
 
 function startTimer() {
