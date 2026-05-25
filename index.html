@@ -23,7 +23,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=10" />
+    <link rel="stylesheet" href="styles.css?v=11" />
   </head>
   <body>
     <main class="app-shell">
@@ -83,7 +83,7 @@
 
         <section class="board-wrap">
           <div class="board-banner">
-            <span>Today</span>
+            <span id="levelBadge">Level 1</span>
             <strong id="boardMood">Sweet stack. Clean matches.</strong>
             <em id="streakBadge">0 streak</em>
           </div>
@@ -125,9 +125,9 @@
         <section>
           <h3>How It Plays</h3>
           <ul class="rules">
-            <li>Only uncovered snacks can be tapped.</li>
+            <li>Level 1 is a quick warmup.</li>
+            <li>Level 2 is today's country challenge.</li>
             <li>Three matching snacks disappear from the tray.</li>
-            <li>The tray holds seven snacks. Fill it and the run ends.</li>
           </ul>
         </section>
       </aside>
@@ -152,6 +152,6 @@
     <audio id="sndTap" src="assets/tap.wav" preload="auto"></audio>
     <audio id="sndMatch" src="assets/match.wav" preload="auto"></audio>
     <audio id="sndFail" src="assets/fail.wav" preload="auto"></audio>
-    <script src="game.js?v=10"></script>
+    <script src="game.js?v=11"></script>
   </body>
 </html>

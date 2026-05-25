@@ -11,6 +11,7 @@ const panelButton = document.querySelector("#panelButton");
 const panelCloseButton = document.querySelector("#panelCloseButton");
 const drawerBackdrop = document.querySelector("#drawerBackdrop");
 const boardMood = document.querySelector("#boardMood");
+const levelBadge = document.querySelector("#levelBadge");
 const streakBadge = document.querySelector("#streakBadge");
 const trayLabel = document.querySelector("#trayLabel");
 const matchToast = document.querySelector("#matchToast");
@@ -100,6 +101,8 @@ let revivedThisRun = false;
 let runCounted = false;
 let streak = 0;
 let bestMoveId = null;
+let currentLevel = 1;
+let pendingNextLevel = null;
 const analyticsKey = "snack-stack-local-analytics-v1";
 let analytics = loadAnalytics();
 
@@ -126,6 +129,10 @@ function shuffle(items, random) {
 }
 
 function makeLayout(random) {
+  if (currentLevel === 1) {
+    return makeWarmupLayout(random);
+  }
+
   const layout = [];
   const boardTopOffset = 58;
   const rows = [
@@ -172,6 +179,34 @@ function makeLayout(random) {
   return layout;
 }
 
+function makeWarmupLayout(random) {
+  const layout = [];
+  const rows = [
+    [78, 92],
+    [148, 92],
+    [218, 92],
+    [288, 92],
+    [78, 172],
+    [148, 172],
+    [218, 172],
+    [288, 172],
+    [112, 252],
+    [182, 252],
+    [252, 252],
+    [322, 252]
+  ];
+
+  rows.forEach(([x, y], index) => {
+    layout.push({
+      x: x + Math.round((random() - 0.5) * 6),
+      y: y + Math.round((random() - 0.5) * 6),
+      layer: 0,
+      id: `tile-${index}`
+    });
+  });
+  return layout;
+}
+
 function isBlockedInSet(tile, candidates) {
   return candidates.some((other) => {
     if (other.id === tile.id || other.layer <= tile.layer) {
@@ -183,6 +218,14 @@ function isBlockedInSet(tile, candidates) {
 
 function buildSolvableSnackMap(layout, random) {
   const snackPack = shuffle(themePacks[activeTheme].snacks, random);
+  if (currentLevel === 1) {
+    const easySnacks = snackPack.slice(0, 4).flatMap((snack) => [snack, snack, snack]);
+    return layout.reduce((memo, tile, index) => {
+      memo[tile.id] = easySnacks[index];
+      return memo;
+    }, {});
+  }
+
   const remaining = layout.map((tile) => ({ ...tile }));
   const snackById = {};
   let turn = 0;
@@ -206,8 +249,9 @@ function buildSolvableSnackMap(layout, random) {
   return snackById;
 }
 
-function initGame() {
-  const random = seededRandom(dailySeed() + activeTheme.length * 97);
+function initGame(level = currentLevel) {
+  currentLevel = level;
+  const random = seededRandom(dailySeed() + activeTheme.length * 97 + currentLevel * 1009);
   const layout = makeLayout(random);
   const snackById = buildSolvableSnackMap(layout, random);
   tiles = layout.map((tile, index) => ({
@@ -221,12 +265,15 @@ function initGame() {
   gamePaused = false;
   revivedThisRun = false;
   runCounted = false;
+  pendingNextLevel = null;
   startedAt = Date.now();
   resultModal.classList.add("hidden");
   reviveButton.hidden = true;
   reviveButton.disabled = false;
   reviveButton.textContent = "🎬 Free Revive · Clear 3 Slots";
-  boardMood.textContent = themePacks[activeTheme].mood;
+  document.querySelector("#playAgainButton").textContent = "Play Again";
+  levelBadge.textContent = currentLevel === 1 ? "Level 1" : "Level 2";
+  boardMood.textContent = currentLevel === 1 ? "Warmup. Clear it fast." : themePacks[activeTheme].mood;
   updateTrayMessage();
   startTimer();
   track("runs");
@@ -377,7 +424,8 @@ function renderStats() {
 
 function renderLeaderboard() {
   const chosen = countrySelect.value;
-  const scoreBoost = matches * 120 + (tiles.length - tiles.filter((tile) => tile.alive).length) * 14;
+  const scoreBoost =
+    currentLevel === 2 ? matches * 120 + (tiles.length - tiles.filter((tile) => tile.alive).length) * 14 : 0;
   const leaders = baseLeaders
     .map(([country, flag, score]) => [country, flag, score + (country === chosen ? scoreBoost : 0)])
     .sort((a, b) => b[2] - a[2]);
@@ -493,7 +541,7 @@ function updateTrayMessage() {
   } else if (openNearMatch && tray.length >= 3) {
     trayLabel.textContent = `${maxTray - tray.length} slots left. Keep it clean.`;
   } else {
-    trayLabel.textContent = themePacks[activeTheme].tray;
+    trayLabel.textContent = currentLevel === 1 ? "Warmup: match 3 and unlock Level 2" : themePacks[activeTheme].tray;
   }
 }
 
@@ -571,22 +619,28 @@ function finishGame(won) {
   ) + 1;
   const left = tiles.filter((tile) => tile.alive).length;
   const grid = makeShareGrid(won, left);
-  lastShareText = `Snack Stack #${dailySeed()}\n${won ? "Cleared" : "Stacked out"} in ${elapsed}\n${matches} matches for ${country}\n${grid}\nCan your country beat us?`;
+  lastShareText = `Snack Stack L${currentLevel} #${dailySeed()}\n${won ? "Cleared" : "Stacked out"} in ${elapsed}\n${matches} matches for ${country}\n${grid}\nCan your country beat us?`;
 
-  resultKicker.textContent = won ? "Country Points Added" : "Tray Filled";
-  resultTitle.textContent = won ? "You cleared today's stack" : "So close. Run it back?";
-  resultCopy.textContent = won
-    ? `${country} gets a score bump. Share the grid and make someone prove they can do better.`
-    : revivedThisRun
-      ? `You made ${matches} matches before the tray filled. The daily board is still waiting.`
-      : `You made ${matches} matches before the tray filled. Clear 3 slots for free and keep the run alive.`;
+  pendingNextLevel = won && currentLevel === 1 ? 2 : null;
+  resultKicker.textContent = won && currentLevel === 1 ? "Warmup Cleared" : won ? "Country Points Added" : "Tray Filled";
+  resultTitle.textContent =
+    won && currentLevel === 1 ? "Level 2 is the real clash" : won ? "You cleared today's stack" : "So close. Run it back?";
+  resultCopy.textContent =
+    won && currentLevel === 1
+      ? "That was the easy one. Now try today's country challenge."
+      : won
+        ? `${country} gets a score bump. Share the grid and make someone prove they can do better.`
+        : revivedThisRun
+          ? `You made ${matches} matches before the tray filled. The daily board is still waiting.`
+          : `You made ${matches} matches before the tray filled. Clear 3 slots for free and keep the run alive.`;
   resultStats.innerHTML = `
     <div><strong>${elapsed}</strong><span>time</span></div>
     <div><strong>${matches}</strong><span>matches</span></div>
     <div><strong>#${rank || "-"}</strong><span>country</span></div>
   `;
   shareTextEl.textContent = lastShareText;
-  reviveButton.hidden = won || revivedThisRun || tray.length < maxTray;
+  reviveButton.hidden = won || currentLevel === 1 || revivedThisRun || tray.length < maxTray;
+  document.querySelector("#playAgainButton").textContent = pendingNextLevel ? "Start Level 2" : "Play Again";
   resultModal.classList.remove("hidden");
   renderLeaderboard();
 }
@@ -681,8 +735,10 @@ function closePanel() {
   drawerBackdrop.classList.add("hidden");
 }
 
-document.querySelector("#resetButton").addEventListener("click", initGame);
-document.querySelector("#playAgainButton").addEventListener("click", initGame);
+document.querySelector("#resetButton").addEventListener("click", () => initGame(currentLevel));
+document.querySelector("#playAgainButton").addEventListener("click", () => {
+  initGame(pendingNextLevel || currentLevel);
+});
 document.querySelector("#hintButton").addEventListener("click", hint);
 document.querySelector("#copyButton").addEventListener("click", copyShare);
 reviveButton.addEventListener("click", reviveRun);
@@ -692,7 +748,7 @@ drawerBackdrop.addEventListener("click", closePanel);
 document.querySelector("#shareButton").addEventListener("click", () => {
   track("shares");
   const elapsed = formatTime(Date.now() - startedAt);
-  lastShareText = `Snack Stack #${dailySeed()}\n${matches} matches in ${elapsed}\nPlaying for ${countrySelect.value}\nTry today's board.`;
+  lastShareText = `Snack Stack L${currentLevel} #${dailySeed()}\n${matches} matches in ${elapsed}\nPlaying for ${countrySelect.value}\nTry today's board.`;
   resultKicker.textContent = "Share Challenge";
   resultTitle.textContent = "Send the daily board";
   resultCopy.textContent = "Invite friends to beat your run and lift your country on the board.";
@@ -716,7 +772,7 @@ themeSwitcher.addEventListener("click", (event) => {
   themeSwitcher.querySelectorAll(".theme-chip").forEach((chip) => {
     chip.classList.toggle("active", chip.dataset.theme === activeTheme);
   });
-  initGame();
+  initGame(currentLevel);
 });
 
 for (let index = 0; index < maxTray; index += 1) {
