@@ -193,56 +193,38 @@ function makeLayout(random) {
     return makeWarmupLayout(random);
   }
 
-  const layout = [];
-  const boardTopOffset = 58;
-  const rows = [
-    [70, 18, 0],
-    [140, 18, 0],
-    [210, 18, 0],
-    [280, 18, 0],
-    [92, 74, 1],
-    [162, 74, 1],
-    [232, 74, 1],
-    [302, 74, 1],
-    [70, 130, 0],
-    [140, 130, 0],
-    [210, 130, 0],
-    [280, 130, 0],
-    [105, 186, 2],
-    [175, 186, 2],
-    [245, 186, 2],
-    [125, 240, 3],
-    [195, 240, 3],
-    [265, 240, 3],
-    [70, 252, 1],
-    [320, 252, 1],
-    [98, 298, 0],
-    [168, 298, 0],
-    [238, 298, 0],
-    [308, 298, 0],
-    [142, 108, 4],
-    [212, 108, 4],
-    [142, 214, 4],
-    [212, 214, 4],
-    [177, 160, 5],
-    [177, 266, 5],
-    [122, 146, 6],
-    [232, 146, 6],
-    [122, 238, 6],
-    [232, 238, 6],
-    [177, 202, 7],
-    [177, 304, 7]
-  ];
+  return makeHardRescueLayout(random);
+}
 
-  rows.forEach(([x, y, layer], index) => {
-    layout.push({
-      x: x + Math.round((random() - 0.5) * 10),
-      y: y + boardTopOffset + Math.round((random() - 0.5) * 8),
-      layer,
+function makeHardRescueLayout(random) {
+  const layout = [];
+  const pushGrid = ({ columns, rows, startX, startY, gapX, gapY, layerBase, jitterX, jitterY }) => {
+    for (let row = 0; row < rows; row += 1) {
+      for (let column = 0; column < columns; column += 1) {
+        layout.push({
+          x: startX + column * gapX + Math.round((random() - 0.5) * jitterX),
+          y: startY + row * gapY + Math.round((random() - 0.5) * jitterY),
+          layer: layerBase + ((row + column) % 2),
+          id: `tile-${layout.length}`
+        });
+      }
+    }
+  };
+
+  pushGrid({ columns: 6, rows: 8, startX: 42, startY: 70, gapX: 58, gapY: 38, layerBase: 0, jitterX: 7, jitterY: 5 });
+  pushGrid({ columns: 6, rows: 4, startX: 54, startY: 112, gapX: 54, gapY: 48, layerBase: 3, jitterX: 9, jitterY: 7 });
+  pushGrid({ columns: 4, rows: 3, startX: 96, startY: 144, gapX: 58, gapY: 54, layerBase: 6, jitterX: 8, jitterY: 8 });
+
+  return layout
+    .map((tile) => ({
+      ...tile,
+      x: Math.min(Math.max(12, tile.x), 326),
+      y: Math.min(Math.max(64, tile.y), 356)
+    }))
+    .map((tile, index) => ({
+      ...tile,
       id: `tile-${index}`
-    });
-  });
-  return layout;
+    }));
 }
 
 function makeWarmupLayout(random) {
@@ -346,7 +328,8 @@ function initGame(level = currentLevel) {
   reviveButton.textContent = "🎬 Free Revive · Clear 3 Slots";
   document.querySelector("#playAgainButton").textContent = "Challenge Again";
   levelBadge.textContent = currentLevel === 1 ? "Training Rescue" : "Daily Global Rescue";
-  boardMood.textContent = currentLevel === 1 ? "Warmup. Save them fast." : "Perfect rescue route. One mistake breaks it.";
+  boardMood.textContent =
+    currentLevel === 1 ? "Warmup. Save them fast." : "84 rescues. One wrong tap breaks the route.";
   updateTrayMessage();
   startTimer();
   track("runs");
@@ -419,6 +402,7 @@ function renderMetrics() {
 
 function renderBoard() {
   boardEl.innerHTML = "";
+  boardEl.classList.toggle("hard-board", currentLevel === 2);
   const boardWidth = boardEl.clientWidth || 390;
   const boardHeight = boardEl.clientHeight || 430;
   const scale = Math.min(1, boardWidth / 390);
@@ -449,7 +433,7 @@ function renderBoard() {
 }
 
 function keepTileInBoard(x, y, boardWidth, boardHeight) {
-  const tileSize = 60;
+  const tileSize = currentLevel === 2 ? 52 : 60;
   const safeTop = 64;
   const padding = 12;
   return {
@@ -703,10 +687,10 @@ function updateTrayMessage() {
   } else if (openNearMatch && tray.length >= 3) {
     trayLabel.textContent = `${maxTray - tray.length} stretcher slots left. Keep the team moving.`;
   } else {
-    trayLabel.textContent =
+      trayLabel.textContent =
       currentLevel === 1
         ? "Warmup: match 3 and unlock the rescue challenge"
-        : "Perfect route only. One wrong rescue breaks the clear.";
+        : "84 rescues. The right route is narrow. One wrong tap breaks the clear.";
   }
 }
 

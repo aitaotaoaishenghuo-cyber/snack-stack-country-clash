@@ -422,6 +422,22 @@ h3 {
   transform: scale(1.04);
 }
 
+.hard-board .tile {
+  width: 52px;
+  height: 52px;
+  border-radius: 13px;
+  font-size: 1.42rem;
+  border-width: 2px;
+  box-shadow:
+    0 7px 0 color-mix(in srgb, var(--tile-color), #172033 34%),
+    0 12px 18px rgba(29, 39, 54, 0.2);
+}
+
+.hard-board .tile.blocked {
+  opacity: 0.5;
+  filter: saturate(0.45) brightness(0.82);
+}
+
 .match-toast {
   position: absolute;
   left: 50%;
@@ -919,7 +935,7 @@ h3 {
   }
 
   .board {
-    min-height: 350px;
+    min-height: 390px;
   }
 
   .metrics-strip {
