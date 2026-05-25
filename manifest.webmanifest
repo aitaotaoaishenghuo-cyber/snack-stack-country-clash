@@ -1,7 +1,7 @@
 {
-  "name": "Snack Stack: Country Clash",
-  "short_name": "Snack Stack",
-  "description": "Clear the pile, score for your country, and challenge friends to beat today's stack.",
+  "name": "Rescue Rush: Country Clash",
+  "short_name": "Rescue Rush",
+  "description": "Save pets, score rescues for your country, and challenge friends to beat today's rescue.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#fff1d6",

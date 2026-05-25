@@ -3,19 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Snack Stack: Country Clash</title>
+    <title>Rescue Rush: Country Clash</title>
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Snack Stack: Country Clash 🍔🇺🇸" />
+    <meta property="og:title" content="Rescue Rush: Country Clash 🐶🌍" />
     <meta
       property="og:description"
-      content="Clear the pile. Score for your country. Can you beat Today's snack stack?"
+      content="Save the pets. Clear the rescue stack. Can your country rescue the most today?"
     />
     <meta property="og:image" content="https://snack-stack-country-clash.vercel.app/assets/og-preview.png" />
     <meta property="og:url" content="https://snack-stack-country-clash.vercel.app/" />
     <meta property="twitter:card" content="summary_large_image" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Snack Stack" />
+    <meta name="apple-mobile-web-app-title" content="Rescue Rush" />
     <meta name="theme-color" content="#34495e" />
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
@@ -23,16 +23,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=13" />
+    <link rel="stylesheet" href="styles.css?v=14" />
   </head>
   <body>
     <main class="app-shell">
-      <section class="screen game-screen" aria-label="Snack Stack game">
+      <section class="screen game-screen" aria-label="Rescue Rush game">
         <header class="top-bar">
           <div class="brand-lockup">
-            <p class="eyebrow">Daily Snack Clash</p>
-            <h1>Snack Stack</h1>
-            <p class="tagline">Clear the pile. Lift your country.</p>
+            <p class="eyebrow">Daily Rescue Clash</p>
+            <h1>Rescue Rush</h1>
+            <p class="tagline">Save pets. Lift your country.</p>
           </div>
           <div class="header-actions">
             <button class="icon-button" id="panelButton" type="button" aria-label="Open leaderboard" title="Leaderboard">
@@ -57,12 +57,12 @@
           </select>
         </section>
 
-        <section class="preference-panel" aria-label="Choose your snack vibe">
-          <span>Vibe</span>
+        <section class="preference-panel" aria-label="Choose your rescue mission">
+          <span>Mission</span>
           <div class="theme-switcher" id="themeSwitcher">
-            <button class="theme-chip active" type="button" data-theme="sweet">Sweet</button>
-            <button class="theme-chip" type="button" data-theme="fast">Fast Food</button>
-            <button class="theme-chip" type="button" data-theme="coffee">Coffee Run</button>
+            <button class="theme-chip active" type="button" data-theme="sweet">Pets</button>
+            <button class="theme-chip" type="button" data-theme="fast">Wildlife</button>
+            <button class="theme-chip" type="button" data-theme="coffee">Ocean</button>
           </div>
         </section>
 
@@ -73,7 +73,7 @@
           </div>
           <div>
             <span id="comboCount">0</span>
-            <small>matches</small>
+            <small>rescues</small>
           </div>
           <div>
             <span id="timer">00:00</span>
@@ -84,15 +84,15 @@
         <section class="board-wrap">
           <div class="board-banner">
             <span id="levelBadge">Level 1</span>
-            <strong id="boardMood">Sweet stack. Clean matches.</strong>
+            <strong id="boardMood">Rescue stack. Save them all.</strong>
             <em id="streakBadge">0 streak</em>
           </div>
           <div class="board" id="board" aria-label="Game board"></div>
-          <div class="match-toast hidden" id="matchToast">Match +1</div>
+          <div class="match-toast hidden" id="matchToast">Rescue +1</div>
         </section>
 
-        <p class="tray-label" id="trayLabel">Match 3 snacks before the tray fills</p>
-        <section class="tray" id="tray" aria-label="Match tray"></section>
+        <p class="tray-label" id="trayLabel">Match 3 rescue icons before the stretcher fills</p>
+        <section class="tray" id="tray" aria-label="Rescue tray"></section>
 
         <section class="actions">
           <button id="hintButton" type="button">Hint</button>
@@ -110,10 +110,10 @@
       <aside class="screen side-screen" id="sidePanel" aria-label="Leaderboard and rules">
         <button class="drawer-close" id="panelCloseButton" type="button" aria-label="Close leaderboard">×</button>
         <section>
-          <p class="eyebrow">Country Clash</p>
-          <h2>Today's Board</h2>
+          <p class="eyebrow">Global Rescue</p>
+          <h2>Today's Rescue</h2>
           <p class="compact-copy">
-            Clear the snack pile, score for your country, then challenge friends with your result.
+            Clear the rescue stack, save pets for your country, then challenge friends with your result.
           </p>
         </section>
 
@@ -126,8 +126,8 @@
           <h3>How It Plays</h3>
           <ul class="rules">
             <li>Level 1 is a quick warmup.</li>
-            <li>Level 2 is today's country challenge.</li>
-            <li>Three matching snacks disappear from the tray.</li>
+            <li>Level 2 is today's rescue challenge.</li>
+            <li>Three matching rescue icons save one group.</li>
           </ul>
         </section>
       </aside>
@@ -152,6 +152,6 @@
     <audio id="sndTap" src="assets/tap.wav" preload="auto"></audio>
     <audio id="sndMatch" src="assets/match.wav" preload="auto"></audio>
     <audio id="sndFail" src="assets/fail.wav" preload="auto"></audio>
-    <script src="game.js?v=13"></script>
+    <script src="game.js?v=14"></script>
   </body>
 </html>

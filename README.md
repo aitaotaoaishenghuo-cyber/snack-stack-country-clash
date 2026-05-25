@@ -1,9 +1,9 @@
-# Snack Stack: Country Clash
+# Rescue Rush: Country Clash
 
 A lightweight mobile-first H5 puzzle MVP for testing overseas web mini-game mechanics:
 
-- Daily solvable stack puzzle
-- Country leaderboard theme
+- Daily solvable rescue puzzle
+- Country rescue leaderboard theme
 - Share modal with Wordle-style grid
 - Simulated rewarded revive
 - Local test metrics
@@ -59,7 +59,7 @@ This is a static site. Deploy the whole folder to Vercel, Netlify, Cloudflare Pa
 
 1. Open Vercel and create a new project.
 2. Choose manual upload or drag-and-drop deployment.
-3. Upload this whole folder or `snack-stack-country-clash.zip`.
+3. Upload this whole folder or your project zip.
 4. After deployment, copy the real production domain.
 5. Update `og:image` and `og:url` in `index.html` if the domain differs.
 

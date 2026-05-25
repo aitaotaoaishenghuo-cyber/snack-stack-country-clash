@@ -35,57 +35,57 @@ const sounds = {
 const maxTray = 7;
 const themePacks = {
   sweet: {
-    mood: "Sweet stack. Clean matches.",
-    tray: "Match 3 treats before the tray fills",
+    mood: "Pet rescue. Save every friend.",
+    tray: "Match 3 pets before the stretcher fills",
     snacks: [
-      { key: "donut", icon: "🍩", color: "#f6a9c8" },
-      { key: "cookie", icon: "🍪", color: "#d49a58" },
-      { key: "cake", icon: "🍰", color: "#ffb3a6" },
-      { key: "icecream", icon: "🍦", color: "#9ed8ff" },
-      { key: "candy", icon: "🍬", color: "#d6a6ff" },
-      { key: "chocolate", icon: "🍫", color: "#a9785d" },
-      { key: "cupcake", icon: "🧁", color: "#ffcb77" },
-      { key: "honey", icon: "🍯", color: "#f6c558" }
+      { key: "dog", icon: "🐶", color: "#f6c558" },
+      { key: "cat", icon: "🐱", color: "#ffb3a6" },
+      { key: "rabbit", icon: "🐰", color: "#f6a9c8" },
+      { key: "hamster", icon: "🐹", color: "#d49a58" },
+      { key: "penguin", icon: "🐧", color: "#9ed8ff" },
+      { key: "bear", icon: "🐻", color: "#a9785d" },
+      { key: "fox", icon: "🦊", color: "#f09654" },
+      { key: "panda", icon: "🐼", color: "#d6e5d1" }
     ]
   },
   fast: {
-    mood: "Fast food pile. No mercy.",
-    tray: "Clear the combo before the tray fills",
+    mood: "Wildlife rescue. No mercy.",
+    tray: "Clear rescue teams before the stretcher fills",
     snacks: [
-      { key: "pizza", icon: "🍕", color: "#f6c558" },
-      { key: "burger", icon: "🍔", color: "#f09654" },
-      { key: "fries", icon: "🍟", color: "#f5d05f" },
-      { key: "taco", icon: "🌮", color: "#86c97d" },
-      { key: "hotdog", icon: "🌭", color: "#f0856b" },
-      { key: "pretzel", icon: "🥨", color: "#ca8b51" },
-      { key: "cola", icon: "🥤", color: "#e87575" },
-      { key: "popcorn", icon: "🍿", color: "#f2d06f" }
+      { key: "lion", icon: "🦁", color: "#f6c558" },
+      { key: "tiger", icon: "🐯", color: "#f09654" },
+      { key: "koala", icon: "🐨", color: "#c7ccd6" },
+      { key: "monkey", icon: "🐵", color: "#d49a58" },
+      { key: "frog", icon: "🐸", color: "#86c97d" },
+      { key: "duck", icon: "🦆", color: "#f5d05f" },
+      { key: "fire", icon: "🔥", color: "#f0856b" },
+      { key: "medkit", icon: "🚑", color: "#e87575" }
     ]
   },
   coffee: {
-    mood: "Coffee run. Stay sharp.",
-    tray: "Keep the cafe rush under control",
+    mood: "Ocean rescue. Stay sharp.",
+    tray: "Save sea life before the stretcher fills",
     snacks: [
-      { key: "coffee", icon: "☕", color: "#c99466" },
-      { key: "latte", icon: "🥛", color: "#e6d4b8" },
-      { key: "croissant", icon: "🥐", color: "#e3a85b" },
-      { key: "bagel", icon: "🥯", color: "#c9915f" },
-      { key: "sandwich", icon: "🥪", color: "#92c77b" },
-      { key: "waffle", icon: "🧇", color: "#dca35d" },
-      { key: "tea", icon: "🍵", color: "#8fcf93" },
-      { key: "cookie", icon: "🍪", color: "#d49a58" }
+      { key: "dolphin", icon: "🐬", color: "#9ed8ff" },
+      { key: "whale", icon: "🐳", color: "#76b7ff" },
+      { key: "seal", icon: "🦭", color: "#c7ccd6" },
+      { key: "turtle", icon: "🐢", color: "#86c97d" },
+      { key: "fish", icon: "🐠", color: "#f6c558" },
+      { key: "octopus", icon: "🐙", color: "#d6a6ff" },
+      { key: "wave", icon: "🌊", color: "#62d0ff" },
+      { key: "lifebuoy", icon: "🛟", color: "#f0856b" }
     ]
   }
 };
 
 const baseLeaders = [
-  ["USA", "🇺🇸", 12840],
-  ["Brazil", "🇧🇷", 11920],
-  ["Japan", "🇯🇵", 11140],
-  ["UK", "🇬🇧", 10260],
-  ["Germany", "🇩🇪", 9850],
-  ["Canada", "🇨🇦", 9340],
-  ["Australia", "🇦🇺", 8760]
+  ["USA", "🇺🇸", 128400],
+  ["Brazil", "🇧🇷", 119200],
+  ["Japan", "🇯🇵", 111400],
+  ["UK", "🇬🇧", 102600],
+  ["Germany", "🇩🇪", 98500],
+  ["Canada", "🇨🇦", 93400],
+  ["Australia", "🇦🇺", 87600]
 ];
 
 let tiles = [];
@@ -106,7 +106,7 @@ let pendingNextLevel = null;
 let perfectRouteIds = [];
 let perfectRouteStep = 0;
 let perfectRouteBroken = false;
-const analyticsKey = "snack-stack-local-analytics-v1";
+const analyticsKey = "rescue-rush-local-analytics-v1";
 let analytics = loadAnalytics();
 
 function dailySeed() {
@@ -286,7 +286,7 @@ function initGame(level = currentLevel) {
   reviveButton.textContent = "🎬 Free Revive · Clear 3 Slots";
   document.querySelector("#playAgainButton").textContent = "Play Again";
   levelBadge.textContent = currentLevel === 1 ? "Level 1" : "Level 2";
-  boardMood.textContent = currentLevel === 1 ? "Warmup. Clear it fast." : "Perfect route. One mistake breaks it.";
+  boardMood.textContent = currentLevel === 1 ? "Warmup. Save them fast." : "Perfect rescue route. One mistake breaks it.";
   updateTrayMessage();
   startTimer();
   track("runs");
@@ -379,7 +379,7 @@ function renderBoard() {
       tileButton.style.setProperty("--tile-color", tile.snack.color);
       tileButton.disabled = blocked;
       tileButton.dataset.tileId = tile.id;
-      tileButton.setAttribute("aria-label", `${tile.snack.key} tile`);
+      tileButton.setAttribute("aria-label", `${tile.snack.key} rescue tile`);
       tileButton.addEventListener("click", () => pickTile(tile.id));
       boardEl.appendChild(tileButton);
     });
@@ -438,7 +438,7 @@ function renderStats() {
 function renderLeaderboard() {
   const chosen = countrySelect.value;
   const scoreBoost =
-    currentLevel === 2 ? matches * 120 + (tiles.length - tiles.filter((tile) => tile.alive).length) * 14 : 0;
+    currentLevel === 2 ? matches * 1200 + (tiles.length - tiles.filter((tile) => tile.alive).length) * 140 : 0;
   const leaders = baseLeaders
     .map(([country, flag, score]) => [country, flag, score + (country === chosen ? scoreBoost : 0)])
     .sort((a, b) => b[2] - a[2]);
@@ -555,14 +555,16 @@ function updateTrayMessage() {
   const openNearMatch = Object.values(counts).find((item) => item.count === 1);
 
   if (tray.length >= 6) {
-    trayLabel.textContent = "One slot left. Make the save.";
+    trayLabel.textContent = "One stretcher slot left. Make the save.";
   } else if (nearMatch) {
-    trayLabel.textContent = `${nearMatch.icon} is one away from a clear`;
+    trayLabel.textContent = `${nearMatch.icon} is one away from a rescue`;
   } else if (openNearMatch && tray.length >= 3) {
-    trayLabel.textContent = `${maxTray - tray.length} slots left. Keep it clean.`;
+    trayLabel.textContent = `${maxTray - tray.length} stretcher slots left. Keep the team moving.`;
   } else {
     trayLabel.textContent =
-      currentLevel === 1 ? "Warmup: match 3 and unlock Level 2" : "Perfect route only. One wrong snack breaks the clear.";
+      currentLevel === 1
+        ? "Warmup: match 3 and unlock the rescue challenge"
+        : "Perfect route only. One wrong rescue breaks the clear.";
   }
 }
 
@@ -578,7 +580,7 @@ function showMatchToast(icon) {
   if (toastId) {
     clearTimeout(toastId);
   }
-  matchToast.textContent = `${icon} Match +1`;
+  matchToast.textContent = `${icon} Rescue +1`;
   matchToast.classList.remove("hidden");
   boardEl.parentElement.classList.add("matching");
   popBurst(icon);
@@ -649,33 +651,37 @@ function finishGame(won) {
   ) + 1;
   const left = tiles.filter((tile) => tile.alive).length;
   const grid = makeShareGrid(won, left);
-  lastShareText = `Snack Stack L${currentLevel} #${dailySeed()}\n${
-    won ? "Cleared" : perfectRouteBroken ? `Perfect route broken with ${left} tiles left` : `Failed with ${left} tiles left`
-  } in ${elapsed}\n${matches} matches for ${country}\n${grid}\nCan your country beat us?`;
+  lastShareText = `Rescue Rush L${currentLevel} #${dailySeed()}\n${
+    won
+      ? "Rescue cleared"
+      : perfectRouteBroken
+        ? `Rescue route broken with ${left} tiles left`
+        : `Rescue failed with ${left} tiles left`
+  } in ${elapsed}\n${matches} rescues for ${country}\n${grid}\nCan your country save more?`;
 
   pendingNextLevel = won && currentLevel === 1 ? 2 : null;
-  resultKicker.textContent = won && currentLevel === 1 ? "Warmup Cleared" : won ? "Country Points Added" : "Tray Filled";
+  resultKicker.textContent = won && currentLevel === 1 ? "Warmup Saved" : won ? "Country Rescues Added" : "Stretcher Filled";
   resultTitle.textContent =
     won && currentLevel === 1
-      ? "Level 2 is the real clash"
+      ? "Level 2 is the real rescue"
       : won
-        ? "You cleared today's stack"
+        ? "You saved today's rescue team"
         : perfectRouteBroken
-          ? "Route broken. No clear today."
+          ? "Route broken. No rescue today."
           : `${left} tiles left. That hurts.`;
   resultCopy.textContent =
     won && currentLevel === 1
-      ? "That was the easy one. Now try today's country challenge."
+      ? "That was the easy rescue. Now try today's country challenge."
       : won
-        ? `${country} gets a score bump. Share the grid and make someone prove they can do better.`
+        ? `${country} rescued more pets. Share the grid and make someone prove they can save more.`
         : perfectRouteBroken
           ? "One earlier mistake broke the clean route. You can keep playing, but this run cannot clear Level 2."
         : revivedThisRun
-          ? `You made ${matches} matches before the tray filled. One cleaner choice could have saved the run.`
-          : `You made ${matches} matches before the tray filled. Clear 3 slots for free and keep the run alive.`;
+          ? `You made ${matches} rescues before the stretcher filled. One cleaner choice could have saved the run.`
+          : `You made ${matches} rescues before the stretcher filled. Clear 3 slots for free and keep the run alive.`;
   resultStats.innerHTML = `
     <div><strong>${elapsed}</strong><span>time</span></div>
-    <div><strong>${matches}</strong><span>matches</span></div>
+    <div><strong>${matches}</strong><span>rescues</span></div>
     <div><strong>${won ? `#${rank || "-"}` : left}</strong><span>${won ? "country" : "left"}</span></div>
   `;
   shareTextEl.textContent = lastShareText;
@@ -788,13 +794,13 @@ drawerBackdrop.addEventListener("click", closePanel);
 document.querySelector("#shareButton").addEventListener("click", () => {
   track("shares");
   const elapsed = formatTime(Date.now() - startedAt);
-  lastShareText = `Snack Stack L${currentLevel} #${dailySeed()}\n${matches} matches in ${elapsed}\nPlaying for ${countrySelect.value}\nTry today's board.`;
+  lastShareText = `Rescue Rush L${currentLevel} #${dailySeed()}\n${matches} rescues in ${elapsed}\nSaving pets for ${countrySelect.value}\nTry today's rescue.`;
   resultKicker.textContent = "Share Challenge";
-  resultTitle.textContent = "Send the daily board";
-  resultCopy.textContent = "Invite friends to beat your run and lift your country on the board.";
+  resultTitle.textContent = "Send the daily rescue";
+  resultCopy.textContent = "Invite friends to beat your run and lift your country on the rescue board.";
   resultStats.innerHTML = `
     <div><strong>${elapsed}</strong><span>time</span></div>
-    <div><strong>${matches}</strong><span>matches</span></div>
+    <div><strong>${matches}</strong><span>rescues</span></div>
     <div><strong>${tiles.filter((tile) => tile.alive).length}</strong><span>left</span></div>
   `;
   shareTextEl.textContent = lastShareText;
