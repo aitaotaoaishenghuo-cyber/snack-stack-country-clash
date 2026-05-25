@@ -2,3 +2,7 @@
 .DS_Store
 .vercel
 .tools
+.env
+.env.*
+!.env.example
+deepseek-draft.md
