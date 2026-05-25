@@ -127,38 +127,38 @@ function shuffle(items, random) {
 
 function makeLayout(random) {
   const layout = [];
-  const boardTopOffset = 78;
+  const boardTopOffset = 58;
   const rows = [
     [70, 18, 0],
     [140, 18, 0],
     [210, 18, 0],
     [280, 18, 0],
-    [95, 82, 1],
-    [165, 82, 1],
-    [235, 82, 1],
-    [305, 82, 1],
-    [70, 146, 0],
-    [140, 146, 0],
-    [210, 146, 0],
-    [280, 146, 0],
-    [110, 210, 2],
-    [180, 210, 2],
-    [250, 210, 2],
-    [135, 274, 3],
-    [205, 274, 3],
-    [275, 274, 3],
-    [80, 300, 1],
-    [320, 300, 1],
-    [105, 356, 0],
-    [175, 356, 0],
-    [245, 356, 0],
-    [315, 356, 0],
-    [150, 120, 4],
-    [220, 120, 4],
-    [150, 236, 4],
-    [220, 236, 4],
-    [185, 180, 5],
-    [185, 302, 5]
+    [92, 74, 1],
+    [162, 74, 1],
+    [232, 74, 1],
+    [302, 74, 1],
+    [70, 130, 0],
+    [140, 130, 0],
+    [210, 130, 0],
+    [280, 130, 0],
+    [105, 186, 2],
+    [175, 186, 2],
+    [245, 186, 2],
+    [125, 240, 3],
+    [195, 240, 3],
+    [265, 240, 3],
+    [70, 252, 1],
+    [320, 252, 1],
+    [98, 298, 0],
+    [168, 298, 0],
+    [238, 298, 0],
+    [308, 298, 0],
+    [142, 108, 4],
+    [212, 108, 4],
+    [142, 214, 4],
+    [212, 214, 4],
+    [177, 160, 5],
+    [177, 266, 5]
   ];
 
   rows.forEach(([x, y, layer], index) => {
@@ -297,6 +297,7 @@ function renderMetrics() {
 function renderBoard() {
   boardEl.innerHTML = "";
   const boardWidth = boardEl.clientWidth || 390;
+  const boardHeight = boardEl.clientHeight || 430;
   const scale = Math.min(1, boardWidth / 390);
   const liveTiles = tiles.filter((tile) => tile.alive).sort((a, b) => a.layer - b.layer);
   const revealEndgame = liveTiles.length > 0 && liveTiles.length <= 6;
@@ -311,8 +312,9 @@ function renderBoard() {
       }`;
       tileButton.type = "button";
       tileButton.textContent = tile.snack.icon;
-      tileButton.style.left = `${compact ? compact.x : tile.x * scale}px`;
-      tileButton.style.top = `${compact ? compact.y : tile.y}px`;
+      const position = keepTileInBoard(compact ? compact.x : tile.x * scale, compact ? compact.y : tile.y, boardWidth, boardHeight);
+      tileButton.style.left = `${position.x}px`;
+      tileButton.style.top = `${position.y}px`;
       tileButton.style.zIndex = String(revealEndgame ? 30 + index : tile.layer + 1);
       tileButton.style.setProperty("--tile-color", tile.snack.color);
       tileButton.disabled = blocked;
@@ -321,6 +323,16 @@ function renderBoard() {
       tileButton.addEventListener("click", () => pickTile(tile.id));
       boardEl.appendChild(tileButton);
     });
+}
+
+function keepTileInBoard(x, y, boardWidth, boardHeight) {
+  const tileSize = 60;
+  const safeTop = 64;
+  const padding = 12;
+  return {
+    x: Math.min(Math.max(padding, x), Math.max(padding, boardWidth - tileSize - padding)),
+    y: Math.min(Math.max(safeTop, y), Math.max(safeTop, boardHeight - tileSize - padding))
+  };
 }
 
 function getEndgamePosition(index, count, boardWidth) {
