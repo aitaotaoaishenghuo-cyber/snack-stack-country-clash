@@ -23,7 +23,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=14" />
+    <link rel="stylesheet" href="styles.css?v=15" />
   </head>
   <body>
     <main class="app-shell">
@@ -43,6 +43,10 @@
             </button>
           </div>
         </header>
+
+        <div class="live-heat" id="socialHeat" aria-live="polite">
+          <span>🔥 18,492 players joined today's rescue</span>
+        </div>
 
         <section class="country-panel" aria-label="Choose your country">
           <label for="countrySelect">Play for</label>
@@ -83,7 +87,7 @@
 
         <section class="board-wrap">
           <div class="board-banner">
-            <span id="levelBadge">Level 1</span>
+            <span id="levelBadge">Training Rescue</span>
             <strong id="boardMood">Rescue stack. Save them all.</strong>
             <em id="streakBadge">0 streak</em>
           </div>
@@ -93,10 +97,12 @@
 
         <p class="tray-label" id="trayLabel">Match 3 rescue icons before the stretcher fills</p>
         <section class="tray" id="tray" aria-label="Rescue tray"></section>
+        <section class="rescue-bench" id="rescueBench" aria-label="Moved out rescue icons"></section>
 
         <section class="actions">
-          <button id="hintButton" type="button">Hint</button>
-          <button id="shareButton" type="button">Share Score</button>
+          <button class="tool-button" id="moveOutButton" type="button"><span>↗</span>Move Out<em>1</em></button>
+          <button class="tool-button" id="undoButton" type="button"><span>↩</span>Undo<em>1</em></button>
+          <button class="tool-button" id="shuffleButton" type="button"><span>⇄</span>Shuffle<em>1</em></button>
         </section>
 
         <section class="metrics-strip" aria-label="Local test metrics">
@@ -119,14 +125,20 @@
 
         <section>
           <h3>Leaderboard</h3>
+          <div class="leaderboard-tabs" id="leaderboardTabs">
+            <button class="leader-tab active" type="button" data-board="world">World</button>
+            <button class="leader-tab" type="button" data-board="country">Country</button>
+            <button class="leader-tab" type="button" data-board="friends">Friends</button>
+          </div>
           <ol class="leaderboard" id="leaderboard"></ol>
+          <div class="player-rank" id="playerRank">You are climbing...</div>
         </section>
 
         <section>
           <h3>How It Plays</h3>
           <ul class="rules">
-            <li>Level 1 is a quick warmup.</li>
-            <li>Level 2 is today's rescue challenge.</li>
+            <li>Training Rescue is a quick warmup.</li>
+            <li>Daily Global Rescue is today's hard challenge.</li>
             <li>Three matching rescue icons save one group.</li>
           </ul>
         </section>
@@ -143,7 +155,20 @@
         <div class="modal-actions">
           <button id="reviveButton" class="btn-premium" type="button">🎬 Free Revive · Clear 3 Slots</button>
           <button id="copyButton" type="button">Copy</button>
-          <button id="playAgainButton" type="button">Play Again</button>
+          <button id="playAgainButton" type="button">Challenge Again</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal hidden" id="toolModal" role="dialog" aria-modal="true" aria-labelledby="toolTitle">
+      <div class="modal-card tool-card">
+        <p class="eyebrow" id="toolKicker">Rescue Tool</p>
+        <h2 id="toolTitle">Get one more save</h2>
+        <p id="toolCopy"></p>
+        <div class="tool-preview" id="toolPreview"></div>
+        <div class="modal-actions">
+          <button id="toolRewardButton" class="btn-premium" type="button">🎬 Watch Ad · Get Tool</button>
+          <button id="toolShareButton" type="button">Share Instead</button>
+          <button id="toolCloseButton" type="button">No Thanks</button>
         </div>
       </div>
     </div>
@@ -152,6 +177,6 @@
     <audio id="sndTap" src="assets/tap.wav" preload="auto"></audio>
     <audio id="sndMatch" src="assets/match.wav" preload="auto"></audio>
     <audio id="sndFail" src="assets/fail.wav" preload="auto"></audio>
-    <script src="game.js?v=14"></script>
+    <script src="game.js?v=15"></script>
   </body>
 </html>

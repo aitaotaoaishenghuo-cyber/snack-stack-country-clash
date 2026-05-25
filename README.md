@@ -5,6 +5,8 @@ A lightweight mobile-first H5 puzzle MVP for testing overseas web mini-game mech
 - Daily solvable rescue puzzle
 - Country rescue leaderboard theme
 - Share modal with Wordle-style grid
+- Yang-style rescue tools: Move Out, Undo, Shuffle
+- World/Country/Friends leaderboard tabs with local simulated heat
 - Simulated rewarded revive
 - Local test metrics
 - Open Graph preview support

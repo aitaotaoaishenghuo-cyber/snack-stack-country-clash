@@ -5,6 +5,8 @@ const comboCountEl = document.querySelector("#comboCount");
 const timerEl = document.querySelector("#timer");
 const countrySelect = document.querySelector("#countrySelect");
 const leaderboardEl = document.querySelector("#leaderboard");
+const leaderboardTabs = document.querySelector("#leaderboardTabs");
+const playerRankEl = document.querySelector("#playerRank");
 const themeSwitcher = document.querySelector("#themeSwitcher");
 const sidePanel = document.querySelector("#sidePanel");
 const panelButton = document.querySelector("#panelButton");
@@ -15,6 +17,8 @@ const levelBadge = document.querySelector("#levelBadge");
 const streakBadge = document.querySelector("#streakBadge");
 const trayLabel = document.querySelector("#trayLabel");
 const matchToast = document.querySelector("#matchToast");
+const socialHeat = document.querySelector("#socialHeat");
+const rescueBenchEl = document.querySelector("#rescueBench");
 const resultModal = document.querySelector("#resultModal");
 const resultKicker = document.querySelector("#resultKicker");
 const resultTitle = document.querySelector("#resultTitle");
@@ -22,6 +26,17 @@ const resultCopy = document.querySelector("#resultCopy");
 const resultStats = document.querySelector("#resultStats");
 const shareTextEl = document.querySelector("#shareText");
 const reviveButton = document.querySelector("#reviveButton");
+const toolModal = document.querySelector("#toolModal");
+const toolKicker = document.querySelector("#toolKicker");
+const toolTitle = document.querySelector("#toolTitle");
+const toolCopy = document.querySelector("#toolCopy");
+const toolPreview = document.querySelector("#toolPreview");
+const toolRewardButton = document.querySelector("#toolRewardButton");
+const toolShareButton = document.querySelector("#toolShareButton");
+const toolCloseButton = document.querySelector("#toolCloseButton");
+const moveOutButton = document.querySelector("#moveOutButton");
+const undoButton = document.querySelector("#undoButton");
+const shuffleButton = document.querySelector("#shuffleButton");
 const metricRuns = document.querySelector("#metricRuns");
 const metricWins = document.querySelector("#metricWins");
 const metricRevives = document.querySelector("#metricRevives");
@@ -88,8 +103,46 @@ const baseLeaders = [
   ["Australia", "🇦🇺", 87600]
 ];
 
+const boardData = {
+  world: [
+    ["MiaPaws", "🐶", "USA", "🇺🇸", 194200],
+    ["SoraSave", "🐱", "Japan", "🇯🇵", 193560],
+    ["RioHero", "🦜", "Brazil", "🇧🇷", 192900],
+    ["KoalaKai", "🐨", "Australia", "🇦🇺", 191760],
+    ["MapleVet", "🐾", "Canada", "🇨🇦", 190420],
+    ["BerlinFox", "🦊", "Germany", "🇩🇪", 188900],
+    ["LondonShelter", "🐰", "UK", "🇬🇧", 187540]
+  ],
+  country: [
+    ["You", "⭐", "", "", 0],
+    ["North Rescue", "🚑", "", "", 14320],
+    ["CityPaws", "🐕", "", "", 13980],
+    ["Happy Shelter", "🐾", "", "", 12880],
+    ["Night Vet", "🩺", "", "", 12160],
+    ["Tiny Hero", "🐹", "", "", 11440]
+  ],
+  friends: [
+    ["Luna", "🐱", "Friends", "👥", 8820],
+    ["Max", "🐶", "Friends", "👥", 8240],
+    ["Ava", "🐰", "Friends", "👥", 7910],
+    ["Noah", "🐧", "Friends", "👥", 7380],
+    ["You", "⭐", "Friends", "👥", 0]
+  ]
+};
+
+const heatMessages = [
+  "{name} just saved {count} pets for {country}",
+  "{name} is stuck on Daily Global Rescue",
+  "{country} is climbing the rescue board",
+  "{name} used Shuffle and kept the run alive",
+  "{count} rescuers are playing right now"
+];
+const heatNames = ["Luna", "Max", "Mia", "Kai", "Sora", "Ava", "Rio", "Noah"];
+
 let tiles = [];
 let tray = [];
+let movedOut = [];
+let moveHistory = [];
 let matches = 0;
 let startedAt = Date.now();
 let timerId = null;
@@ -106,6 +159,10 @@ let pendingNextLevel = null;
 let perfectRouteIds = [];
 let perfectRouteStep = 0;
 let perfectRouteBroken = false;
+let activeLeaderboard = "world";
+let pendingTool = null;
+let heatId = null;
+let toolCounts = { moveOut: 1, undo: 1, shuffle: 1 };
 const analyticsKey = "rescue-rush-local-analytics-v1";
 let analytics = loadAnalytics();
 
@@ -271,8 +328,11 @@ function initGame(level = currentLevel) {
     alive: true
   }));
   tray = [];
+  movedOut = [];
+  moveHistory = [];
   matches = 0;
   streak = 0;
+  toolCounts = { moveOut: 1, undo: 1, shuffle: 1 };
   gamePaused = false;
   revivedThisRun = false;
   runCounted = false;
@@ -284,8 +344,8 @@ function initGame(level = currentLevel) {
   reviveButton.hidden = true;
   reviveButton.disabled = false;
   reviveButton.textContent = "🎬 Free Revive · Clear 3 Slots";
-  document.querySelector("#playAgainButton").textContent = "Play Again";
-  levelBadge.textContent = currentLevel === 1 ? "Level 1" : "Level 2";
+  document.querySelector("#playAgainButton").textContent = "Challenge Again";
+  levelBadge.textContent = currentLevel === 1 ? "Training Rescue" : "Daily Global Rescue";
   boardMood.textContent = currentLevel === 1 ? "Warmup. Save them fast." : "Perfect rescue route. One mistake breaks it.";
   updateTrayMessage();
   startTimer();
@@ -293,15 +353,18 @@ function initGame(level = currentLevel) {
   runCounted = true;
   renderAll();
   renderMetrics();
+  updateToolButtons();
 }
 
 function renderAll() {
   bestMoveId = currentLevel === 1 ? getBestMoveId() : null;
   renderBoard();
   renderTray();
+  renderBench();
   renderStats();
   renderLeaderboard();
   renderMetrics();
+  updateToolButtons();
   updateTrayMessage();
 }
 
@@ -428,6 +491,21 @@ function renderTray() {
   }
 }
 
+function renderBench() {
+  rescueBenchEl.innerHTML = "";
+  rescueBenchEl.classList.toggle("active", movedOut.length > 0);
+  for (let index = 0; index < 3; index += 1) {
+    const slot = document.createElement("div");
+    slot.className = "bench-slot";
+    const tile = movedOut[index];
+    if (tile) {
+      slot.textContent = tile.snack.icon;
+      slot.style.setProperty("--tile-color", tile.snack.color);
+    }
+    rescueBenchEl.appendChild(slot);
+  }
+}
+
 function renderStats() {
   tilesLeftEl.textContent = String(tiles.filter((tile) => tile.alive).length);
   comboCountEl.textContent = String(matches);
@@ -439,16 +517,52 @@ function renderLeaderboard() {
   const chosen = countrySelect.value;
   const scoreBoost =
     currentLevel === 2 ? matches * 1200 + (tiles.length - tiles.filter((tile) => tile.alive).length) * 140 : 0;
-  const leaders = baseLeaders
-    .map(([country, flag, score]) => [country, flag, score + (country === chosen ? scoreBoost : 0)])
-    .sort((a, b) => b[2] - a[2]);
+  const chosenFlag = baseLeaders.find(([country]) => country === chosen)?.[1] || "🌍";
+  let leaders;
+
+  if (activeLeaderboard === "world") {
+    leaders = baseLeaders.map(([country, flag, score]) => ({
+      name: country,
+      avatar: flag,
+      area: "Global rescue team",
+      score: score + (country === chosen ? scoreBoost : 0),
+      you: country === chosen
+    }));
+  } else if (activeLeaderboard === "country") {
+    leaders = boardData.country.map(([name, avatar, area, flag, score], index) => ({
+      name: name === "You" ? "You" : name,
+      avatar,
+      area: name === "You" ? `${chosenFlag} ${chosen}` : `${chosenFlag} ${chosen} Zone ${index + 1}`,
+      score: name === "You" ? 9200 + scoreBoost : score + Math.floor(scoreBoost * 0.28),
+      you: name === "You"
+    }));
+  } else {
+    leaders = boardData.friends.map(([name, avatar, area, flag, score]) => ({
+      name,
+      avatar,
+      area: `${flag} ${area}`,
+      score: name === "You" ? 6400 + scoreBoost : score,
+      you: name === "You"
+    }));
+  }
+
+  leaders = leaders.sort((a, b) => b.score - a.score);
+  const playerIndex = leaders.findIndex((leader) => leader.you);
 
   leaderboardEl.innerHTML = "";
-  leaders.forEach(([country, flag, score], index) => {
+  leaders.forEach((leader, index) => {
     const item = document.createElement("li");
-    item.innerHTML = `<strong>${index + 1}. ${flag} ${country}</strong><span>${score.toLocaleString()}</span>`;
+    item.className = leader.you ? "you" : "";
+    item.innerHTML = `
+      <strong><b>${index + 1}</b><i>${leader.avatar}</i><span>${leader.name}<small>${leader.area}</small></span></strong>
+      <em>${leader.score.toLocaleString()}</em>
+    `;
     leaderboardEl.appendChild(item);
   });
+  playerRankEl.textContent =
+    playerIndex >= 0
+      ? `Your rank: #${playerIndex + 1} · ${leaders[playerIndex].score.toLocaleString()} rescues`
+      : `${chosenFlag} ${chosen} is fighting for today's rescue board`;
 }
 
 function isBlocked(tile) {
@@ -466,6 +580,8 @@ function pickTile(tileId) {
   if (!tile || !tile.alive || isBlocked(tile) || tray.length >= maxTray) {
     return;
   }
+
+  saveMoveSnapshot();
 
   if (currentLevel === 2 && !perfectRouteBroken && tileId !== perfectRouteIds[perfectRouteStep]) {
     perfectRouteBroken = true;
@@ -497,6 +613,32 @@ function pickTile(tileId) {
 
   renderAll();
   updateTrayMessage();
+}
+
+function saveMoveSnapshot() {
+  moveHistory.push({
+    aliveIds: tiles.filter((tile) => tile.alive).map((tile) => tile.id),
+    trayIds: tray.map((tile) => tile.id),
+    movedIds: movedOut.map((tile) => tile.id),
+    matches,
+    streak,
+    perfectRouteStep,
+    perfectRouteBroken
+  });
+  moveHistory = moveHistory.slice(-12);
+}
+
+function restoreSnapshot(snapshot) {
+  const aliveSet = new Set(snapshot.aliveIds);
+  tiles.forEach((tile) => {
+    tile.alive = aliveSet.has(tile.id);
+  });
+  tray = snapshot.trayIds.map((id) => tiles.find((tile) => tile.id === id)).filter(Boolean);
+  movedOut = snapshot.movedIds.map((id) => tiles.find((tile) => tile.id === id)).filter(Boolean);
+  matches = snapshot.matches;
+  streak = snapshot.streak;
+  perfectRouteStep = snapshot.perfectRouteStep;
+  perfectRouteBroken = snapshot.perfectRouteBroken;
 }
 
 function resolveMatches() {
@@ -660,10 +802,10 @@ function finishGame(won) {
   } in ${elapsed}\n${matches} rescues for ${country}\n${grid}\nCan your country save more?`;
 
   pendingNextLevel = won && currentLevel === 1 ? 2 : null;
-  resultKicker.textContent = won && currentLevel === 1 ? "Warmup Saved" : won ? "Country Rescues Added" : "Stretcher Filled";
+  resultKicker.textContent = won && currentLevel === 1 ? "Training Saved" : won ? "Country Rescues Added" : "Mission Failed";
   resultTitle.textContent =
     won && currentLevel === 1
-      ? "Level 2 is the real rescue"
+      ? "Daily Global Rescue is waiting"
       : won
         ? "You saved today's rescue team"
         : perfectRouteBroken
@@ -675,7 +817,7 @@ function finishGame(won) {
       : won
         ? `${country} rescued more pets. Share the grid and make someone prove they can save more.`
         : perfectRouteBroken
-          ? "One earlier mistake broke the clean route. You can keep playing, but this run cannot clear Level 2."
+          ? "One earlier mistake broke the clean route. You can keep playing, but this run cannot clear Daily Global Rescue."
         : revivedThisRun
           ? `You made ${matches} rescues before the stretcher filled. One cleaner choice could have saved the run.`
           : `You made ${matches} rescues before the stretcher filled. Clear 3 slots for free and keep the run alive.`;
@@ -686,7 +828,7 @@ function finishGame(won) {
   `;
   shareTextEl.textContent = lastShareText;
   reviveButton.hidden = won || currentLevel === 1 || revivedThisRun || tray.length < maxTray || perfectRouteBroken;
-  document.querySelector("#playAgainButton").textContent = pendingNextLevel ? "Start Level 2" : "Play Again";
+  document.querySelector("#playAgainButton").textContent = pendingNextLevel ? "Start Daily Rescue" : "Challenge Again";
   resultModal.classList.remove("hidden");
   renderLeaderboard();
 }
@@ -732,6 +874,115 @@ function completeRevive() {
   updateTrayMessage();
 }
 
+function useMoveOut() {
+  if (gamePaused || tray.length === 0) {
+    showToolOffer("moveOut");
+    return;
+  }
+  if (toolCounts.moveOut <= 0) {
+    showToolOffer("moveOut");
+    return;
+  }
+  const count = Math.min(3 - movedOut.length, 3, tray.length);
+  if (count <= 0) {
+    showMatchToast("↗");
+    return;
+  }
+  movedOut.push(...tray.splice(-count, count));
+  toolCounts.moveOut -= 1;
+  track("revives");
+  showMatchToast("↗");
+  renderAll();
+}
+
+function useUndo() {
+  if (gamePaused || moveHistory.length === 0) {
+    showToolOffer("undo");
+    return;
+  }
+  if (toolCounts.undo <= 0) {
+    showToolOffer("undo");
+    return;
+  }
+  restoreSnapshot(moveHistory.pop());
+  toolCounts.undo -= 1;
+  showMatchToast("↩");
+  renderAll();
+}
+
+function useShuffle() {
+  if (gamePaused) {
+    return;
+  }
+  if (toolCounts.shuffle <= 0) {
+    showToolOffer("shuffle");
+    return;
+  }
+  const liveTiles = tiles.filter((tile) => tile.alive);
+  if (liveTiles.length < 4) {
+    showMatchToast("⇄");
+    return;
+  }
+  const random = seededRandom(Date.now() + liveTiles.length * 31);
+  const shuffledSnacks = shuffle(liveTiles.map((tile) => tile.snack), random);
+  liveTiles.forEach((tile, index) => {
+    tile.snack = shuffledSnacks[index];
+  });
+  if (currentLevel === 2) {
+    perfectRouteBroken = true;
+  }
+  toolCounts.shuffle -= 1;
+  showMatchToast("⇄");
+  renderAll();
+}
+
+function updateToolButtons() {
+  [
+    [moveOutButton, "moveOut"],
+    [undoButton, "undo"],
+    [shuffleButton, "shuffle"]
+  ].forEach(([button, key]) => {
+    const count = toolCounts[key] || 0;
+    button.querySelector("em").textContent = String(count);
+    button.classList.toggle("empty", count <= 0);
+  });
+}
+
+function showToolOffer(tool) {
+  pendingTool = tool;
+  const copy = {
+    moveOut: ["Move Out Tool", "Move up to 3 icons out of the stretcher and keep this rescue alive.", "↗ 🐶 🐱 🐰"],
+    undo: ["Undo Tool", "Take back your latest tap before the rescue route collapses.", "↩ last move"],
+    shuffle: ["Shuffle Tool", "Reorder the remaining rescue stack when the board feels impossible.", "⇄ rescue stack"]
+  }[tool];
+  toolKicker.textContent = "Rescue Tool";
+  toolTitle.textContent = copy[0];
+  toolCopy.textContent = copy[1];
+  toolPreview.textContent = copy[2];
+  toolModal.classList.remove("hidden");
+}
+
+function closeToolOffer() {
+  toolModal.classList.add("hidden");
+  pendingTool = null;
+}
+
+function grantPendingTool() {
+  if (!pendingTool) {
+    return;
+  }
+  toolRewardButton.disabled = true;
+  toolRewardButton.textContent = "Loading reward...";
+  setTimeout(() => {
+    toolCounts[pendingTool] = (toolCounts[pendingTool] || 0) + 1;
+    toolRewardButton.disabled = false;
+    toolRewardButton.textContent = "🎬 Watch Ad · Get Tool";
+    closeToolOffer();
+    updateToolButtons();
+    showMatchToast("🎁");
+  }, 700);
+}
+
 function startTimer() {
   stopTimer();
   timerEl.textContent = "00:00";
@@ -755,6 +1006,9 @@ function formatTime(milliseconds) {
 }
 
 async function copyShare() {
+  if (!lastShareText) {
+    lastShareText = `Rescue Rush #${dailySeed()}\nI am saving pets for ${countrySelect.value}.\nCan your country save more?`;
+  }
   try {
     await navigator.clipboard.writeText(lastShareText || shareTextEl.textContent);
   } catch {
@@ -781,30 +1035,49 @@ function closePanel() {
   drawerBackdrop.classList.add("hidden");
 }
 
+function rotateSocialHeat() {
+  const random = seededRandom(Date.now());
+  const name = heatNames[Math.floor(random() * heatNames.length)];
+  const country = countrySelect.value;
+  const count = 1200 + Math.floor(random() * 9800);
+  const template = heatMessages[Math.floor(random() * heatMessages.length)];
+  socialHeat.querySelector("span").textContent = `🔥 ${template
+    .replace("{name}", name)
+    .replace("{country}", country)
+    .replace("{count}", count.toLocaleString())}`;
+  socialHeat.classList.add("pop");
+  setTimeout(() => socialHeat.classList.remove("pop"), 700);
+}
+
 document.querySelector("#resetButton").addEventListener("click", () => initGame(currentLevel));
 document.querySelector("#playAgainButton").addEventListener("click", () => {
   initGame(pendingNextLevel || currentLevel);
 });
-document.querySelector("#hintButton").addEventListener("click", hint);
+moveOutButton.addEventListener("click", useMoveOut);
+undoButton.addEventListener("click", useUndo);
+shuffleButton.addEventListener("click", useShuffle);
 document.querySelector("#copyButton").addEventListener("click", copyShare);
 reviveButton.addEventListener("click", reviveRun);
+toolRewardButton.addEventListener("click", grantPendingTool);
+toolShareButton.addEventListener("click", () => {
+  track("shares");
+  copyShare();
+  grantPendingTool();
+});
+toolCloseButton.addEventListener("click", closeToolOffer);
 panelButton.addEventListener("click", openPanel);
 panelCloseButton.addEventListener("click", closePanel);
 drawerBackdrop.addEventListener("click", closePanel);
-document.querySelector("#shareButton").addEventListener("click", () => {
-  track("shares");
-  const elapsed = formatTime(Date.now() - startedAt);
-  lastShareText = `Rescue Rush L${currentLevel} #${dailySeed()}\n${matches} rescues in ${elapsed}\nSaving pets for ${countrySelect.value}\nTry today's rescue.`;
-  resultKicker.textContent = "Share Challenge";
-  resultTitle.textContent = "Send the daily rescue";
-  resultCopy.textContent = "Invite friends to beat your run and lift your country on the rescue board.";
-  resultStats.innerHTML = `
-    <div><strong>${elapsed}</strong><span>time</span></div>
-    <div><strong>${matches}</strong><span>rescues</span></div>
-    <div><strong>${tiles.filter((tile) => tile.alive).length}</strong><span>left</span></div>
-  `;
-  shareTextEl.textContent = lastShareText;
-  resultModal.classList.remove("hidden");
+leaderboardTabs.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-board]");
+  if (!button) {
+    return;
+  }
+  activeLeaderboard = button.dataset.board;
+  leaderboardTabs.querySelectorAll(".leader-tab").forEach((tab) => {
+    tab.classList.toggle("active", tab.dataset.board === activeLeaderboard);
+  });
+  renderLeaderboard();
 });
 countrySelect.addEventListener("change", renderLeaderboard);
 window.addEventListener("resize", renderBoard);
@@ -828,3 +1101,5 @@ for (let index = 0; index < maxTray; index += 1) {
 }
 
 initGame();
+rotateSocialHeat();
+heatId = setInterval(rotateSocialHeat, 4200);
