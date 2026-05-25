@@ -103,6 +103,9 @@ let streak = 0;
 let bestMoveId = null;
 let currentLevel = 1;
 let pendingNextLevel = null;
+let perfectRouteIds = [];
+let perfectRouteStep = 0;
+let perfectRouteBroken = false;
 const analyticsKey = "snack-stack-local-analytics-v1";
 let analytics = loadAnalytics();
 
@@ -223,6 +226,7 @@ function isBlockedInSet(tile, candidates) {
 }
 
 function buildSolvableSnackMap(layout, random) {
+  perfectRouteIds = [];
   const snackPack = shuffle(themePacks[activeTheme].snacks, random);
   if (currentLevel === 1) {
     const easySnacks = snackPack.slice(0, 4).flatMap((snack) => [snack, snack, snack]);
@@ -244,6 +248,7 @@ function buildSolvableSnackMap(layout, random) {
 
     triple.forEach((tile) => {
       snackById[tile.id] = snack;
+      perfectRouteIds.push(tile.id);
       const index = remaining.findIndex((candidate) => candidate.id === tile.id);
       if (index >= 0) {
         remaining.splice(index, 1);
@@ -271,6 +276,8 @@ function initGame(level = currentLevel) {
   gamePaused = false;
   revivedThisRun = false;
   runCounted = false;
+  perfectRouteStep = 0;
+  perfectRouteBroken = false;
   pendingNextLevel = null;
   startedAt = Date.now();
   resultModal.classList.add("hidden");
@@ -279,7 +286,7 @@ function initGame(level = currentLevel) {
   reviveButton.textContent = "🎬 Free Revive · Clear 3 Slots";
   document.querySelector("#playAgainButton").textContent = "Play Again";
   levelBadge.textContent = currentLevel === 1 ? "Level 1" : "Level 2";
-  boardMood.textContent = currentLevel === 1 ? "Warmup. Clear it fast." : "Daily trap. Think before tapping.";
+  boardMood.textContent = currentLevel === 1 ? "Warmup. Clear it fast." : "Perfect route. One mistake breaks it.";
   updateTrayMessage();
   startTimer();
   track("runs");
@@ -460,8 +467,15 @@ function pickTile(tileId) {
     return;
   }
 
+  if (currentLevel === 2 && !perfectRouteBroken && tileId !== perfectRouteIds[perfectRouteStep]) {
+    perfectRouteBroken = true;
+  }
+
   playSound("tap");
   tile.alive = false;
+  if (currentLevel === 2 && !perfectRouteBroken) {
+    perfectRouteStep += 1;
+  }
   animatePicked(tileId);
   tray.push(tile);
   const resolved = resolveMatches();
@@ -472,7 +486,7 @@ function pickTile(tileId) {
   }
 
   if (tiles.every((candidate) => !candidate.alive)) {
-    finishGame(true);
+    finishGame(!perfectRouteBroken);
     return;
   }
 
@@ -547,7 +561,8 @@ function updateTrayMessage() {
   } else if (openNearMatch && tray.length >= 3) {
     trayLabel.textContent = `${maxTray - tray.length} slots left. Keep it clean.`;
   } else {
-    trayLabel.textContent = currentLevel === 1 ? "Warmup: match 3 and unlock Level 2" : themePacks[activeTheme].tray;
+    trayLabel.textContent =
+      currentLevel === 1 ? "Warmup: match 3 and unlock Level 2" : "Perfect route only. One wrong snack breaks the clear.";
   }
 }
 
@@ -585,6 +600,11 @@ function popBurst(icon) {
 
 function hint() {
   const openTiles = tiles.filter((tile) => tile.alive && !isBlocked(tile));
+  if (currentLevel === 2) {
+    const target = tiles.find((tile) => tile.id === perfectRouteIds[perfectRouteStep] && tile.alive);
+    flashHintTile(target);
+    return;
+  }
   const grouped = openTiles.reduce((memo, tile) => {
     memo[tile.snack.key] = memo[tile.snack.key] || [];
     memo[tile.snack.key].push(tile);
@@ -596,6 +616,10 @@ function hint() {
     Object.values(grouped).find((group) => group.length > 1)?.[0] ||
     openTiles[0];
 
+  flashHintTile(target);
+}
+
+function flashHintTile(target) {
   if (!target) {
     return;
   }
@@ -626,7 +650,7 @@ function finishGame(won) {
   const left = tiles.filter((tile) => tile.alive).length;
   const grid = makeShareGrid(won, left);
   lastShareText = `Snack Stack L${currentLevel} #${dailySeed()}\n${
-    won ? "Cleared" : `Failed with ${left} tiles left`
+    won ? "Cleared" : perfectRouteBroken ? `Perfect route broken with ${left} tiles left` : `Failed with ${left} tiles left`
   } in ${elapsed}\n${matches} matches for ${country}\n${grid}\nCan your country beat us?`;
 
   pendingNextLevel = won && currentLevel === 1 ? 2 : null;
@@ -636,12 +660,16 @@ function finishGame(won) {
       ? "Level 2 is the real clash"
       : won
         ? "You cleared today's stack"
-        : `${left} tiles left. That hurts.`;
+        : perfectRouteBroken
+          ? "Route broken. No clear today."
+          : `${left} tiles left. That hurts.`;
   resultCopy.textContent =
     won && currentLevel === 1
       ? "That was the easy one. Now try today's country challenge."
       : won
         ? `${country} gets a score bump. Share the grid and make someone prove they can do better.`
+        : perfectRouteBroken
+          ? "One earlier mistake broke the clean route. You can keep playing, but this run cannot clear Level 2."
         : revivedThisRun
           ? `You made ${matches} matches before the tray filled. One cleaner choice could have saved the run.`
           : `You made ${matches} matches before the tray filled. Clear 3 slots for free and keep the run alive.`;
@@ -651,7 +679,7 @@ function finishGame(won) {
     <div><strong>${won ? `#${rank || "-"}` : left}</strong><span>${won ? "country" : "left"}</span></div>
   `;
   shareTextEl.textContent = lastShareText;
-  reviveButton.hidden = won || currentLevel === 1 || revivedThisRun || tray.length < maxTray;
+  reviveButton.hidden = won || currentLevel === 1 || revivedThisRun || tray.length < maxTray || perfectRouteBroken;
   document.querySelector("#playAgainButton").textContent = pendingNextLevel ? "Start Level 2" : "Play Again";
   resultModal.classList.remove("hidden");
   renderLeaderboard();
