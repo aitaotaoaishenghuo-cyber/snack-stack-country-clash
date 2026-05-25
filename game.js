@@ -165,7 +165,13 @@ function makeLayout(random) {
     [142, 214, 4],
     [212, 214, 4],
     [177, 160, 5],
-    [177, 266, 5]
+    [177, 266, 5],
+    [122, 146, 6],
+    [232, 146, 6],
+    [122, 238, 6],
+    [232, 238, 6],
+    [177, 202, 7],
+    [177, 304, 7]
   ];
 
   rows.forEach(([x, y, layer], index) => {
@@ -273,7 +279,7 @@ function initGame(level = currentLevel) {
   reviveButton.textContent = "🎬 Free Revive · Clear 3 Slots";
   document.querySelector("#playAgainButton").textContent = "Play Again";
   levelBadge.textContent = currentLevel === 1 ? "Level 1" : "Level 2";
-  boardMood.textContent = currentLevel === 1 ? "Warmup. Clear it fast." : themePacks[activeTheme].mood;
+  boardMood.textContent = currentLevel === 1 ? "Warmup. Clear it fast." : "Daily trap. Think before tapping.";
   updateTrayMessage();
   startTimer();
   track("runs");
@@ -283,7 +289,7 @@ function initGame(level = currentLevel) {
 }
 
 function renderAll() {
-  bestMoveId = getBestMoveId();
+  bestMoveId = currentLevel === 1 ? getBestMoveId() : null;
   renderBoard();
   renderTray();
   renderStats();
@@ -347,7 +353,7 @@ function renderBoard() {
   const boardHeight = boardEl.clientHeight || 430;
   const scale = Math.min(1, boardWidth / 390);
   const liveTiles = tiles.filter((tile) => tile.alive).sort((a, b) => a.layer - b.layer);
-  const revealEndgame = liveTiles.length > 0 && liveTiles.length <= 6;
+  const revealEndgame = liveTiles.length > 0 && liveTiles.length <= 3;
 
   liveTiles
     .forEach((tile, index) => {
@@ -619,24 +625,30 @@ function finishGame(won) {
   ) + 1;
   const left = tiles.filter((tile) => tile.alive).length;
   const grid = makeShareGrid(won, left);
-  lastShareText = `Snack Stack L${currentLevel} #${dailySeed()}\n${won ? "Cleared" : "Stacked out"} in ${elapsed}\n${matches} matches for ${country}\n${grid}\nCan your country beat us?`;
+  lastShareText = `Snack Stack L${currentLevel} #${dailySeed()}\n${
+    won ? "Cleared" : `Failed with ${left} tiles left`
+  } in ${elapsed}\n${matches} matches for ${country}\n${grid}\nCan your country beat us?`;
 
   pendingNextLevel = won && currentLevel === 1 ? 2 : null;
   resultKicker.textContent = won && currentLevel === 1 ? "Warmup Cleared" : won ? "Country Points Added" : "Tray Filled";
   resultTitle.textContent =
-    won && currentLevel === 1 ? "Level 2 is the real clash" : won ? "You cleared today's stack" : "So close. Run it back?";
+    won && currentLevel === 1
+      ? "Level 2 is the real clash"
+      : won
+        ? "You cleared today's stack"
+        : `${left} tiles left. That hurts.`;
   resultCopy.textContent =
     won && currentLevel === 1
       ? "That was the easy one. Now try today's country challenge."
       : won
         ? `${country} gets a score bump. Share the grid and make someone prove they can do better.`
         : revivedThisRun
-          ? `You made ${matches} matches before the tray filled. The daily board is still waiting.`
+          ? `You made ${matches} matches before the tray filled. One cleaner choice could have saved the run.`
           : `You made ${matches} matches before the tray filled. Clear 3 slots for free and keep the run alive.`;
   resultStats.innerHTML = `
     <div><strong>${elapsed}</strong><span>time</span></div>
     <div><strong>${matches}</strong><span>matches</span></div>
-    <div><strong>#${rank || "-"}</strong><span>country</span></div>
+    <div><strong>${won ? `#${rank || "-"}` : left}</strong><span>${won ? "country" : "left"}</span></div>
   `;
   shareTextEl.textContent = lastShareText;
   reviveButton.hidden = won || currentLevel === 1 || revivedThisRun || tray.length < maxTray;
