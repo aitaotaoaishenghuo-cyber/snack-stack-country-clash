@@ -399,6 +399,12 @@ h3 {
   animation: hot-tile 1250ms ease-in-out infinite;
 }
 
+.tile.endgame {
+  opacity: 1;
+  filter: saturate(1.08);
+  transform: scale(1.04);
+}
+
 .match-toast {
   position: absolute;
   left: 50%;

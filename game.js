@@ -298,19 +298,22 @@ function renderBoard() {
   boardEl.innerHTML = "";
   const boardWidth = boardEl.clientWidth || 390;
   const scale = Math.min(1, boardWidth / 390);
+  const liveTiles = tiles.filter((tile) => tile.alive).sort((a, b) => a.layer - b.layer);
+  const revealEndgame = liveTiles.length > 0 && liveTiles.length <= 6;
 
-  tiles
-    .filter((tile) => tile.alive)
-    .sort((a, b) => a.layer - b.layer)
-    .forEach((tile) => {
+  liveTiles
+    .forEach((tile, index) => {
       const tileButton = document.createElement("button");
-      const blocked = isBlocked(tile);
-      tileButton.className = `tile${blocked ? " blocked" : ""}${tile.id === bestMoveId ? " hot" : ""}`;
+      const blocked = !revealEndgame && isBlocked(tile);
+      const compact = revealEndgame ? getEndgamePosition(index, liveTiles.length, boardWidth) : null;
+      tileButton.className = `tile${blocked ? " blocked" : ""}${tile.id === bestMoveId ? " hot" : ""}${
+        revealEndgame ? " endgame" : ""
+      }`;
       tileButton.type = "button";
       tileButton.textContent = tile.snack.icon;
-      tileButton.style.left = `${tile.x * scale}px`;
-      tileButton.style.top = `${tile.y}px`;
-      tileButton.style.zIndex = String(tile.layer + 1);
+      tileButton.style.left = `${compact ? compact.x : tile.x * scale}px`;
+      tileButton.style.top = `${compact ? compact.y : tile.y}px`;
+      tileButton.style.zIndex = String(revealEndgame ? 30 + index : tile.layer + 1);
       tileButton.style.setProperty("--tile-color", tile.snack.color);
       tileButton.disabled = blocked;
       tileButton.dataset.tileId = tile.id;
@@ -318,6 +321,20 @@ function renderBoard() {
       tileButton.addEventListener("click", () => pickTile(tile.id));
       boardEl.appendChild(tileButton);
     });
+}
+
+function getEndgamePosition(index, count, boardWidth) {
+  const columns = Math.min(3, count);
+  const rows = Math.ceil(count / columns);
+  const tileGap = 74;
+  const row = Math.floor(index / columns);
+  const column = index % columns;
+  const gridWidth = (columns - 1) * tileGap + 60;
+  const gridHeight = (rows - 1) * tileGap + 60;
+  return {
+    x: Math.max(16, (boardWidth - gridWidth) / 2 + column * tileGap),
+    y: Math.max(128, 252 - gridHeight / 2 + row * tileGap)
+  };
 }
 
 function renderTray() {
@@ -362,6 +379,9 @@ function renderLeaderboard() {
 }
 
 function isBlocked(tile) {
+  if (tiles.filter((candidate) => candidate.alive).length <= 6) {
+    return false;
+  }
   return isBlockedInSet(tile, tiles.filter((candidate) => candidate.alive));
 }
 
