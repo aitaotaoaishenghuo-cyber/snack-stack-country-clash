@@ -871,16 +871,23 @@ function makeShareGrid(won, left) {
     .join("\n");
 }
 
-function reviveRun() {
+async function reviveRun() {
   if (revivedThisRun || tray.length === 0) {
     return;
   }
   trackGameEvent("watch_ad_click", { placement: "free_revive" });
   reviveButton.disabled = true;
   reviveButton.textContent = "Loading reward...";
-  setTimeout(() => {
+  const granted = await window.RescueAds?.showRewardedAd({
+    placement: "free_revive",
+    rewardName: "Clear 3 Slots"
+  });
+  if (granted) {
     completeRevive();
-  }, 900);
+    return;
+  }
+  reviveButton.disabled = false;
+  reviveButton.textContent = "🎬 Free Revive · Clear 3 Slots";
 }
 
 function completeRevive() {
@@ -995,21 +1002,35 @@ function closeToolOffer() {
   pendingTool = null;
 }
 
-function grantPendingTool() {
+function awardPendingTool(source) {
   if (!pendingTool) {
     return;
   }
+  const awardedTool = pendingTool;
+  toolCounts[awardedTool] = (toolCounts[awardedTool] || 0) + 1;
+  trackGameEvent("tool_reward_granted", { tool: awardedTool, source });
+  closeToolOffer();
+  updateToolButtons();
+  showMatchToast("🎁");
+}
+
+async function grantPendingTool() {
+  if (!pendingTool) {
+    return;
+  }
+  const tool = pendingTool;
   trackGameEvent("watch_ad_click", { placement: "tool_offer", tool: pendingTool });
   toolRewardButton.disabled = true;
   toolRewardButton.textContent = "Loading reward...";
-  setTimeout(() => {
-    toolCounts[pendingTool] = (toolCounts[pendingTool] || 0) + 1;
-    toolRewardButton.disabled = false;
-    toolRewardButton.textContent = "🎬 Watch Ad · Get Tool";
-    closeToolOffer();
-    updateToolButtons();
-    showMatchToast("🎁");
-  }, 700);
+  const granted = await window.RescueAds?.showRewardedAd({
+    placement: `tool_${tool}`,
+    rewardName: `${toolTitle.textContent} Tool`
+  });
+  toolRewardButton.disabled = false;
+  toolRewardButton.textContent = "🎬 Watch Ad · Get Tool";
+  if (granted && pendingTool === tool) {
+    awardPendingTool("rewarded_ad");
+  }
 }
 
 function startTimer() {
@@ -1096,7 +1117,7 @@ toolShareButton.addEventListener("click", () => {
   track("shares");
   trackGameEvent("share_click", { placement: "tool_offer", tool: pendingTool });
   copyShare();
-  grantPendingTool();
+  awardPendingTool("share");
 });
 toolCloseButton.addEventListener("click", closeToolOffer);
 panelButton.addEventListener("click", openPanel);

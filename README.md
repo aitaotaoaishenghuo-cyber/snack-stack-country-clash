@@ -7,9 +7,10 @@ A lightweight mobile-first H5 puzzle MVP for testing overseas web mini-game mech
 - Share modal with Wordle-style grid
 - Yang-style rescue tools: Move Out, Undo, Shuffle
 - World/Country/Friends leaderboard tabs with local simulated heat
-- Simulated rewarded revive
+- Mock rewarded ad adapter for revive and tools
 - Local test metrics
 - Open Graph preview support
+- About, Privacy, Terms, and Contact pages for ad-network review
 
 ## Local Preview
 
@@ -64,6 +65,12 @@ The game now emits the funnel events needed for TikTok testing:
 - `use_tool`
 - `tool_offer_open`
 - `watch_ad_click`
+- `ad_offer`
+- `ad_start`
+- `ad_complete`
+- `ad_cancel`
+- `ad_error`
+- `tool_reward_granted`
 - `challenge_again`
 - `share_click`
 
@@ -77,6 +84,12 @@ Recommended first funnel:
 ```text
 start_level_1 -> start_level_2 -> fail_level_2 -> watch_ad_click
 ```
+
+## Rewarded Ads
+
+`adAdapter.js` is the only place that should know which ad provider is active. The current provider is `mock`, so ad
+buttons show a short test modal and then grant the reward. When Google H5 Games Ads, Google Ad Manager, Poki, or
+CrazyGames is approved, swap the provider implementation there and keep the game logic unchanged.
 
 ## Deploy
 

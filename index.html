@@ -23,7 +23,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=19" />
+    <link rel="stylesheet" href="styles.css?v=20" />
     <script>
       window.RESCUE_ANALYTICS_CONFIG = {
         posthogKey: "phc_osWViRNHhXMHtS8t7Vt8V2jSW775iNpFBtxZz7qWJ2Pt",
@@ -31,8 +31,13 @@
         tiktokPixelId: "",
         debug: true
       };
+      window.RESCUE_AD_CONFIG = {
+        provider: "mock",
+        mockDurationMs: 1600
+      };
     </script>
-    <script src="analytics.js?v=19"></script>
+    <script src="analytics.js?v=20"></script>
+    <script src="adAdapter.js?v=20"></script>
   </head>
   <body>
     <main class="app-shell">
@@ -120,6 +125,12 @@
           <div><strong id="metricRevives">0</strong><span>revives</span></div>
           <div><strong id="metricShares">0</strong><span>shares</span></div>
         </section>
+        <footer class="site-footer" aria-label="Site links">
+          <a href="about.html">About</a>
+          <a href="privacy.html">Privacy</a>
+          <a href="terms.html">Terms</a>
+          <a href="contact.html">Contact</a>
+        </footer>
       </section>
 
       <aside class="screen side-screen" id="sidePanel" aria-label="Leaderboard and rules">
@@ -186,6 +197,6 @@
     <audio id="sndTap" src="assets/tap.wav" preload="auto"></audio>
     <audio id="sndMatch" src="assets/match.wav" preload="auto"></audio>
     <audio id="sndFail" src="assets/fail.wav" preload="auto"></audio>
-    <script src="game.js?v=19"></script>
+    <script src="game.js?v=20"></script>
   </body>
 </html>
