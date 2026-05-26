@@ -211,14 +211,16 @@ function makeHardRescueLayout(random) {
     }
   };
 
-  pushGrid({ columns: 6, rows: 8, startX: 42, startY: 70, gapX: 58, gapY: 38, layerBase: 0, jitterX: 7, jitterY: 5 });
-  pushGrid({ columns: 6, rows: 4, startX: 54, startY: 112, gapX: 54, gapY: 48, layerBase: 3, jitterX: 9, jitterY: 7 });
-  pushGrid({ columns: 4, rows: 3, startX: 96, startY: 144, gapX: 58, gapY: 54, layerBase: 6, jitterX: 8, jitterY: 8 });
+  pushGrid({ columns: 7, rows: 8, startX: 20, startY: 74, gapX: 52, gapY: 36, layerBase: 0, jitterX: 5, jitterY: 5 });
+  pushGrid({ columns: 6, rows: 5, startX: 42, startY: 98, gapX: 54, gapY: 42, layerBase: 3, jitterX: 8, jitterY: 7 });
+  pushGrid({ columns: 5, rows: 4, startX: 70, startY: 126, gapX: 56, gapY: 44, layerBase: 6, jitterX: 8, jitterY: 8 });
+  pushGrid({ columns: 4, rows: 3, startX: 98, startY: 154, gapX: 58, gapY: 48, layerBase: 9, jitterX: 7, jitterY: 7 });
+  pushGrid({ columns: 2, rows: 1, startX: 154, startY: 218, gapX: 62, gapY: 48, layerBase: 12, jitterX: 6, jitterY: 6 });
 
   return layout
     .map((tile) => ({
       ...tile,
-      x: Math.min(Math.max(12, tile.x), 326),
+      x: Math.min(Math.max(10, tile.x), 332),
       y: Math.min(Math.max(64, tile.y), 356)
     }))
     .map((tile, index) => ({
@@ -281,8 +283,16 @@ function buildSolvableSnackMap(layout, random) {
 
   while (remaining.length > 0) {
     const openTiles = remaining.filter((tile) => !isBlockedInSet(tile, remaining));
-    const source = openTiles.length >= 3 ? openTiles : remaining;
-    const triple = shuffle(source, random).slice(0, 3);
+    const topChoice = shuffle(openTiles, random)[0] || shuffle(remaining, random)[0];
+    const hiddenPool = remaining.filter((tile) => tile.id !== topChoice.id && isBlockedInSet(tile, remaining));
+    const layerPool = remaining
+      .filter((tile) => tile.id !== topChoice.id)
+      .sort((a, b) => a.layer - b.layer || Math.abs(b.x - topChoice.x) + Math.abs(b.y - topChoice.y) - Math.abs(a.x - topChoice.x) - Math.abs(a.y - topChoice.y));
+    const second = (shuffle(hiddenPool, random)[0] || layerPool[0] || remaining.find((tile) => tile.id !== topChoice.id));
+    const thirdPool = remaining.filter((tile) => tile.id !== topChoice.id && tile.id !== second?.id);
+    const thirdHidden = thirdPool.filter((tile) => isBlockedInSet(tile, remaining));
+    const third = shuffle(thirdHidden.length ? thirdHidden : thirdPool, random)[0];
+    const triple = [topChoice, second, third].filter(Boolean);
     const snack = snackPack[turn % snackPack.length];
 
     triple.forEach((tile) => {
@@ -329,7 +339,7 @@ function initGame(level = currentLevel) {
   document.querySelector("#playAgainButton").textContent = "Challenge Again";
   levelBadge.textContent = currentLevel === 1 ? "Training Rescue" : "Daily Global Rescue";
   boardMood.textContent =
-    currentLevel === 1 ? "Warmup. Save them fast." : "84 rescues. One wrong tap breaks the route.";
+    currentLevel === 1 ? "Warmup. Save them fast." : "120 rescues. Matches are buried deep.";
   updateTrayMessage();
   startTimer();
   track("runs");
@@ -433,7 +443,7 @@ function renderBoard() {
 }
 
 function keepTileInBoard(x, y, boardWidth, boardHeight) {
-  const tileSize = currentLevel === 2 ? 52 : 60;
+  const tileSize = currentLevel === 2 ? 48 : 60;
   const safeTop = 64;
   const padding = 12;
   return {
@@ -690,7 +700,7 @@ function updateTrayMessage() {
       trayLabel.textContent =
       currentLevel === 1
         ? "Warmup: match 3 and unlock the rescue challenge"
-        : "84 rescues. The right route is narrow. One wrong tap breaks the clear.";
+        : "120 rescues. Matching groups are buried under the stack.";
   }
 }
 
