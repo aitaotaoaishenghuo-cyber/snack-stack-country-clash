@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rescue Rush Analytics Setup</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet" />
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #fff1d6, #dff8ee 48%, #e8efff);
+        color: #172033;
+        font-family: "Fredoka", system-ui, sans-serif;
+      }
+
+      main {
+        width: min(980px, calc(100% - 28px));
+        margin: 0 auto;
+        padding: 34px 0;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(2rem, 5vw, 4rem);
+      }
+
+      p {
+        color: #596174;
+        font-weight: 700;
+        line-height: 1.5;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+      }
+
+      .card {
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.82);
+        border: 1px solid rgba(255, 255, 255, 0.92);
+        box-shadow: 0 18px 50px rgba(23, 32, 51, 0.12);
+        padding: 18px;
+      }
+
+      .metric {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        border-bottom: 1px solid rgba(23, 32, 51, 0.08);
+        padding: 10px 0;
+        font-weight: 900;
+      }
+
+      .metric:last-child {
+        border-bottom: 0;
+      }
+
+      code {
+        border-radius: 8px;
+        background: #111827;
+        color: #fff;
+        padding: 2px 6px;
+      }
+
+      button,
+      a.button {
+        display: inline-grid;
+        place-items: center;
+        min-height: 42px;
+        border: 0;
+        border-radius: 12px;
+        background: #172033;
+        color: white;
+        padding: 0 14px;
+        font: inherit;
+        font-weight: 900;
+        text-decoration: none;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Rescue Rush Analytics</h1>
+      <p>
+        Use this page as a local debug panel. For real TikTok traffic, connect PostHog and TikTok Pixel in
+        <code>index.html</code>, then use PostHog as the live dashboard.
+      </p>
+
+      <section class="grid">
+        <div class="card">
+          <h2>Local Debug Events</h2>
+          <div id="metrics"></div>
+          <button id="clearButton" type="button">Clear Local Debug Data</button>
+        </div>
+
+        <div class="card">
+          <h2>Events To Watch</h2>
+          <p><code>start_level_2</code> means TikTok traffic reached the real challenge.</p>
+          <p><code>fail_level_2</code> means the game is hard enough to create ad demand.</p>
+          <p><code>use_tool</code> and <code>watch_ad_click</code> are the monetization signals.</p>
+          <p><code>challenge_again</code> means replay intent.</p>
+        </div>
+
+        <div class="card">
+          <h2>Dashboard Setup</h2>
+          <p>1. Create a free PostHog project.</p>
+          <p>2. Put the project key into <code>posthogKey</code> in <code>index.html</code>.</p>
+          <p>3. Put your TikTok Pixel ID into <code>tiktokPixelId</code>.</p>
+          <p>4. Create a PostHog funnel: page view → start_level_2 → fail_level_2 → watch_ad_click.</p>
+          <a class="button" href="/" target="_blank" rel="noreferrer">Open Game</a>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const localKey = "rescue-rush-events-v1";
+      const metricsEl = document.querySelector("#metrics");
+      const clearButton = document.querySelector("#clearButton");
+
+      function render() {
+        const events = JSON.parse(localStorage.getItem(localKey) || "[]");
+        const counts = events.reduce((memo, item) => {
+          memo[item.event] = (memo[item.event] || 0) + 1;
+          return memo;
+        }, {});
+        const names = [
+          "start_level_1",
+          "start_level_2",
+          "fail_level_2",
+          "complete_level_2",
+          "use_tool",
+          "watch_ad_click",
+          "challenge_again",
+          "share_click"
+        ];
+        metricsEl.innerHTML = names
+          .map((name) => `<div class="metric"><span>${name}</span><strong>${counts[name] || 0}</strong></div>`)
+          .join("");
+      }
+
+      clearButton.addEventListener("click", () => {
+        localStorage.removeItem(localKey);
+        render();
+      });
+
+      render();
+    </script>
+  </body>
+</html>

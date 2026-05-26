@@ -53,6 +53,31 @@ deepseek-draft.md
 
 Never commit `.env` or API keys.
 
+## TikTok Test Analytics
+
+The game now emits the funnel events needed for TikTok testing:
+
+- `start_level_1`
+- `start_level_2`
+- `fail_level_2`
+- `complete_level_2`
+- `use_tool`
+- `tool_offer_open`
+- `watch_ad_click`
+- `challenge_again`
+- `share_click`
+
+Open `analytics.html` for local debug counts.
+
+For a real campaign dashboard, create a PostHog project and put the project key into `posthogKey` in `index.html`.
+Add your TikTok Pixel ID to `tiktokPixelId` in the same config block.
+
+Recommended first funnel:
+
+```text
+start_level_1 -> start_level_2 -> fail_level_2 -> watch_ad_click
+```
+
 ## Deploy
 
 This is a static site. Deploy the whole folder to Vercel, Netlify, Cloudflare Pages, or any static host.

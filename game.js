@@ -171,6 +171,26 @@ function dailySeed() {
   return Number(`${now.getFullYear()}${now.getMonth() + 1}${now.getDate()}`);
 }
 
+function gameEventProps(extra = {}) {
+  return {
+    level: currentLevel,
+    level_name: currentLevel === 1 ? "Training Rescue" : "Daily Global Rescue",
+    country: countrySelect.value,
+    theme: activeTheme,
+    tiles_left: tiles.filter((tile) => tile.alive).length,
+    tray_count: tray.length,
+    moved_out_count: movedOut.length,
+    rescues: matches,
+    route_broken: perfectRouteBroken,
+    elapsed_seconds: Math.floor((Date.now() - startedAt) / 1000),
+    ...extra
+  };
+}
+
+function trackGameEvent(eventName, extra = {}) {
+  window.RescueAnalytics?.track(eventName, gameEventProps(extra));
+}
+
 function seededRandom(seed) {
   let value = seed % 2147483647;
   return function next() {
@@ -347,6 +367,9 @@ function initGame(level = currentLevel) {
   renderAll();
   renderMetrics();
   updateToolButtons();
+  trackGameEvent(currentLevel === 1 ? "start_level_1" : "start_level_2", {
+    total_tiles: tiles.length
+  });
 }
 
 function renderAll() {
@@ -786,6 +809,12 @@ function finishGame(won) {
     item.textContent.includes(country)
   ) + 1;
   const left = tiles.filter((tile) => tile.alive).length;
+  trackGameEvent(won ? `complete_level_${currentLevel}` : `fail_level_${currentLevel}`, {
+    left,
+    total_tiles: tiles.length,
+    won,
+    failure_reason: won ? "" : perfectRouteBroken ? "route_broken" : tray.length >= maxTray ? "tray_full" : "unknown"
+  });
   const grid = makeShareGrid(won, left);
   lastShareText = `Rescue Rush L${currentLevel} #${dailySeed()}\n${
     won
@@ -846,6 +875,7 @@ function reviveRun() {
   if (revivedThisRun || tray.length === 0) {
     return;
   }
+  trackGameEvent("watch_ad_click", { placement: "free_revive" });
   reviveButton.disabled = true;
   reviveButton.textContent = "Loading reward...";
   setTimeout(() => {
@@ -885,6 +915,7 @@ function useMoveOut() {
   movedOut.push(...tray.splice(-count, count));
   toolCounts.moveOut -= 1;
   track("revives");
+  trackGameEvent("use_tool", { tool: "move_out", moved_count: count });
   showMatchToast("↗");
   renderAll();
 }
@@ -900,6 +931,7 @@ function useUndo() {
   }
   restoreSnapshot(moveHistory.pop());
   toolCounts.undo -= 1;
+  trackGameEvent("use_tool", { tool: "undo" });
   showMatchToast("↩");
   renderAll();
 }
@@ -926,6 +958,7 @@ function useShuffle() {
     perfectRouteBroken = true;
   }
   toolCounts.shuffle -= 1;
+  trackGameEvent("use_tool", { tool: "shuffle" });
   showMatchToast("⇄");
   renderAll();
 }
@@ -944,6 +977,7 @@ function updateToolButtons() {
 
 function showToolOffer(tool) {
   pendingTool = tool;
+  trackGameEvent("tool_offer_open", { tool });
   const copy = {
     moveOut: ["Move Out Tool", "Move up to 3 icons out of the stretcher and keep this rescue alive.", "↗ 🐶 🐱 🐰"],
     undo: ["Undo Tool", "Take back your latest tap before the rescue route collapses.", "↩ last move"],
@@ -965,6 +999,7 @@ function grantPendingTool() {
   if (!pendingTool) {
     return;
   }
+  trackGameEvent("watch_ad_click", { placement: "tool_offer", tool: pendingTool });
   toolRewardButton.disabled = true;
   toolRewardButton.textContent = "Loading reward...";
   setTimeout(() => {
@@ -1045,6 +1080,10 @@ function rotateSocialHeat() {
 
 document.querySelector("#resetButton").addEventListener("click", () => initGame(currentLevel));
 document.querySelector("#playAgainButton").addEventListener("click", () => {
+  trackGameEvent("challenge_again", {
+    next_level: pendingNextLevel || currentLevel,
+    button_text: document.querySelector("#playAgainButton").textContent
+  });
   initGame(pendingNextLevel || currentLevel);
 });
 moveOutButton.addEventListener("click", useMoveOut);
@@ -1055,6 +1094,7 @@ reviveButton.addEventListener("click", reviveRun);
 toolRewardButton.addEventListener("click", grantPendingTool);
 toolShareButton.addEventListener("click", () => {
   track("shares");
+  trackGameEvent("share_click", { placement: "tool_offer", tool: pendingTool });
   copyShare();
   grantPendingTool();
 });
