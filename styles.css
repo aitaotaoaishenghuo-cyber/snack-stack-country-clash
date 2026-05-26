@@ -882,6 +882,75 @@ h3 {
   display: none;
 }
 
+.content-shell {
+  width: min(960px, calc(100% - 28px));
+  margin: 0 auto;
+  padding: 18px 0 56px;
+}
+
+.content-hero,
+.content-grid article,
+.faq-section {
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 48px rgba(23, 32, 51, 0.1);
+}
+
+.content-hero {
+  padding: clamp(22px, 4vw, 34px);
+  margin-bottom: 16px;
+}
+
+.content-hero h2 {
+  max-width: 760px;
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  line-height: 1.03;
+}
+
+.content-hero p {
+  max-width: 760px;
+  color: var(--muted);
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.content-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.content-grid article {
+  padding: 18px;
+}
+
+.content-grid p,
+.faq-section p {
+  color: var(--muted);
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.faq-section {
+  margin-top: 16px;
+  padding: 22px;
+}
+
+.faq-section details {
+  border-top: 1px solid rgba(23, 32, 51, 0.09);
+  padding: 13px 0;
+}
+
+.faq-section details:last-child {
+  padding-bottom: 0;
+}
+
+.faq-section summary {
+  cursor: pointer;
+  font-weight: 950;
+}
+
 .legal-page {
   background: linear-gradient(135deg, #fff1d6 0%, #dff8ee 48%, #e9edff 100%);
 }
@@ -1032,6 +1101,10 @@ h3 {
 
   .metrics-strip {
     display: none;
+  }
+
+  .content-grid {
+    grid-template-columns: 1fr;
   }
 
   .tray {

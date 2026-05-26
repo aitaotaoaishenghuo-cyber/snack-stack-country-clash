@@ -4,6 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Rescue Rush: Country Clash</title>
+    <meta
+      name="description"
+      content="Play Rescue Rush: Country Clash, a mobile browser puzzle game about saving pets, clearing stacked tiles, and competing on a daily country leaderboard."
+    />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Rescue Rush: Country Clash 🐶🌍" />
     <meta
@@ -28,7 +32,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="styles.css?v=20" />
+    <link rel="stylesheet" href="styles.css?v=21" />
     <script>
       window.RESCUE_ANALYTICS_CONFIG = {
         posthogKey: "phc_osWViRNHhXMHtS8t7Vt8V2jSW775iNpFBtxZz7qWJ2Pt",
@@ -135,6 +139,7 @@
           <a href="privacy.html">Privacy</a>
           <a href="terms.html">Terms</a>
           <a href="contact.html">Contact</a>
+          <a href="changelog.html">Updates</a>
         </footer>
       </section>
 
@@ -169,6 +174,72 @@
         </section>
       </aside>
     </main>
+
+    <section class="content-shell" aria-label="About Rescue Rush">
+      <article class="content-hero">
+        <p class="eyebrow">Browser Puzzle Game</p>
+        <h2>Save pets, clear the rescue stack, and climb the country leaderboard.</h2>
+        <p>
+          Rescue Rush: Country Clash is a lightweight HTML5 matching puzzle built for quick mobile sessions. Players
+          clear layered rescue icons by sending three matching icons to the stretcher tray before it fills up.
+        </p>
+      </article>
+
+      <div class="content-grid">
+        <article>
+          <h3>How The Game Works</h3>
+          <p>
+            The first stage is a short training rescue. The second stage is the daily challenge: more icons, deeper
+            layers, and fewer safe choices. Only uncovered icons can be tapped, so each move changes what becomes
+            available next.
+          </p>
+        </article>
+        <article>
+          <h3>Daily Challenge</h3>
+          <p>
+            Daily Global Rescue is tuned around narrow choices and a seven-slot tray. A clean route can clear the board,
+            while careless picks can bury needed matches and fill the tray.
+          </p>
+        </article>
+        <article>
+          <h3>Optional Rewards</h3>
+          <p>
+            Rewarded ad placements are optional. They are designed for rescue moments such as reviving a failed run or
+            earning a tool. The live site currently uses a mock rewarded ad while the advertising account is under
+            review.
+          </p>
+        </article>
+      </div>
+
+      <section class="faq-section" aria-label="Frequently asked questions">
+        <h2>FAQ</h2>
+        <details>
+          <summary>Do I need to install anything?</summary>
+          <p>No. Rescue Rush runs directly in a mobile or desktop browser.</p>
+        </details>
+        <details>
+          <summary>Is the leaderboard real?</summary>
+          <p>
+            The current MVP uses simulated leaderboard values for gameplay testing. Real leaderboard services may be
+            added after the game loop and monetization are validated.
+          </p>
+        </details>
+        <details>
+          <summary>Does the game collect personal information?</summary>
+          <p>
+            The game does not require registration. It uses local storage and product analytics to measure gameplay
+            quality, ad interest, and technical performance.
+          </p>
+        </details>
+        <details>
+          <summary>Can children play?</summary>
+          <p>
+            Rescue Rush is a casual puzzle game, but it is not directed specifically to children. Players under the age
+            required in their region should use the game with a parent or guardian.
+          </p>
+        </details>
+      </section>
+    </section>
 
     <div class="modal hidden" id="resultModal" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
       <div class="modal-card">
