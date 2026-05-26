@@ -6,3 +6,5 @@
 .env.*
 !.env.example
 deepseek-draft.md
+videos/*.mp4
+!videos/README.md
